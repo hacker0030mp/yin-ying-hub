@@ -1,0 +1,38 @@
+loadstring(game:HttpGet("https://raw.githubusercontent.com/komayma273-cyber/Script-Evade/refs/heads/main/KRYVEX%20Hub"))()
+
+local Window = WindUI:CreateWindow({
+    Title = "YIN-YING-HUB",
+    Icon = "https://cdn.phototourl.com/member/2026-10-16-c8fd00c7-3c45-446d-bf02-956f9ca17068.jpg",
+    Author = "by YIN_YING",
+})
+
+-- =======================================
+-- tab 1 loadstring script 
+-- =======================================
+local Tab = Window:Tab({
+    Title = "loadstring",
+    Icon = "bird",
+})
+
+local Section = Tab:Section({
+    Title = "loadstring script"
+})
+ 
+Section:Button({ 
+    Title = "loadstring script",
+    Callback = function()
+        -- ใส่ฟังก์ชันเมื่อกดปุ่มตรงนี้
+    end
+})
+
+Section:Toggle({ 
+    Title = [[
+--[[
+	WARNING: Heads up! This script has not been verified by ScriptBlox. Use at your own risk!
+]]
+loadstring(game:HttpGet("https://raw.githubusercontent.com/GalacticScripts/Galactic-Hub/refs/heads/main/WindUI"))()
+    ]],
+    Callback = function(Value)
+        -- ใส่ฟังก์ชันเมื่อกดเปิด/ปิด Toggle ตรงนี้
+    end
+})
