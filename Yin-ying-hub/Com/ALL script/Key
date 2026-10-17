@@ -1,0 +1,20 @@
+local Window = WindUI:CreateWindow({ -- creating window from /docs/windui/window
+    Title = "ker",
+    KeySystem = {
+        Title = "Access Required",
+        Note = "Get your key at discord.gg/example",
+        
+        KeyValidator = function(key) -- your key validation logic
+            local validKeys = {"com_12"}
+            return table.find(validKeys, key) ~= nil
+        end,
+        
+        SaveKey = true,
+        URL = "https://jnkie.com/get-key/com-7708-yin-yang-56", -- link to get keys
+        
+        Thumbnail = {
+            Image = "rbxassetid://1234567890",
+            Title = "Premium Member",
+        }
+    }
+})
