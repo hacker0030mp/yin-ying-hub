@@ -1,0 +1,363 @@
+--[=[
+    YinYang Event & UI System - All-in-One Installer & Runner Script
+    นำสคริปต์นี้ไปวางใน ServerScriptService แล้วกด Play 1 ครั้งเพื่อสร้างระบบทั้งหมด
+]=]
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerScriptService = game:GetService("ServerScriptService")
+local StarterPlayer = game:GetService("StarterPlayer")
+local StarterPlayerScripts = StarterPlayer:WaitForChild("StarterPlayerScripts")
+
+print("[YinYang System] กำลังติดตั้งระบบ Event และ UI ทั้งหมด...")
+
+-- 1. สร้าง Folder Remotes และ RemoteEvent ใน ReplicatedStorage
+local remotesFolder = ReplicatedStorage:FindFirstChild("Remotes")
+if not remotesFolder then
+    remotesFolder = Instance.new("Folder")
+    remotesFolder.Name = "Remotes"
+    remotesFolder.Parent = ReplicatedStorage
+end
+
+local eventNotification = remotesFolder:FindFirstChild("EventNotification")
+if not eventNotification then
+    eventNotification = Instance.new("RemoteEvent")
+    eventNotification.Name = "EventNotification"
+    eventNotification.Parent = remotesFolder
+end
+
+-- 2. สร้าง EventConfig (ModuleScript) ใน ReplicatedStorage
+local eventConfigModule = ReplicatedStorage:FindFirstChild("EventConfig")
+if not eventConfigModule then
+    eventConfigModule = Instance.new("ModuleScript")
+    eventConfigModule.Name = "EventConfig"
+    eventConfigModule.Parent = ReplicatedStorage
+end
+
+eventConfigModule.Source = [[
+local EventConfig = {}
+
+EventConfig.Events = {
+    EmeraldStorm = {
+        Name = "Emerald Storm",
+        Description = "พายุเอเมอรัลด์กำลังจะเริ่ม!",
+        Duration = 30,
+        Cooldown = 60,
+        Reward = 100,
+    },
+
+    YinYangAwakening = {
+        Name = "Yin Yang Awakening",
+        Description = "พลังหยินหยางตื่นขึ้นแล้ว!",
+        Duration = 45,
+        Cooldown = 90,
+        Reward = 250,
+    },
+}
+
+return EventConfig
+]]
+
+-- 3. สร้าง EventManager (ModuleScript) ใน ServerScriptService
+local eventManagerModule = ServerScriptService:FindFirstChild("EventManager")
+if not eventManagerModule then
+    eventManagerModule = Instance.new("ModuleScript")
+    eventManagerModule.Name = "EventManager"
+    eventManagerModule.Parent = ServerScriptService
+end
+
+eventManagerModule.Source = [[
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local EventConfig = require(
+    ReplicatedStorage:WaitForChild("EventConfig")
+)
+
+local Remotes = ReplicatedStorage:WaitForChild("Remotes")
+local Notification = Remotes:WaitForChild("EventNotification")
+
+local EventManager = {}
+
+local activeEvent = nil
+local lastStarted = {}
+local eventToken = 0
+
+function EventManager.GetActiveEvent()
+    return activeEvent
+end
+
+function EventManager.Start(eventId)
+    local config = EventConfig.Events[eventId]
+
+    if not config then
+        return false, "ไม่พบอีเวนต์"
+    end
+
+    if activeEvent then
+        return false, "มีอีเวนต์กำลังทำงานอยู่"
+    end
+
+    local now = os.clock()
+    local previous = lastStarted[eventId]
+
+    if previous and now - previous < config.Cooldown then
+        return false, "อีเวนต์กำลังอยู่ในช่วง Cooldown"
+    end
+
+    eventToken += 1
+    local myToken = eventToken
+
+    lastStarted[eventId] = now
+
+    activeEvent = {
+        Id = eventId,
+        Name = config.Name,
+        StartedAt = now,
+        Duration = config.Duration,
+        Token = myToken,
+    }
+
+    Notification:FireAllClients("Started", {
+        Id = eventId,
+        Name = config.Name,
+        Description = config.Description,
+        Duration = config.Duration,
+    })
+
+    print("[YIN YANG EVENT] Started:", config.Name)
+
+    task.delay(config.Duration, function()
+        if not activeEvent then
+            return
+        end
+
+        if activeEvent.Token ~= myToken then
+            return
+        end
+
+        EventManager.Stop(eventId)
+    end)
+
+    return true, "เริ่มอีเวนต์สำเร็จ"
+end
+
+function EventManager.Stop(eventId)
+    if not activeEvent then
+        return false, "ไม่มีอีเวนต์ที่กำลังทำงาน"
+    end
+
+    if eventId and activeEvent.Id ~= eventId then
+        return false, "รหัสอีเวนต์ไม่ตรงกัน"
+    end
+
+    local finished = activeEvent
+    activeEvent = nil
+
+    Notification:FireAllClients("Ended", {
+        Id = finished.Id,
+        Name = finished.Name,
+    })
+
+    print("[YIN YANG EVENT] Ended:", finished.Name)
+
+    return true, "จบอีเวนต์สำเร็จ"
+end
+
+return EventManager
+]]
+
+-- 4. สร้าง EventRunner (Script) ใน ServerScriptService
+local eventRunnerScript = ServerScriptService:FindFirstChild("EventRunner")
+if not eventRunnerScript then
+    eventRunnerScript = Instance.new("Script")
+    eventRunnerScript.Name = "EventRunner"
+    eventRunnerScript.Parent = ServerScriptService
+end
+
+eventRunnerScript.Source = [[
+local ServerScriptService = game:GetService("ServerScriptService")
+
+local EventManager = require(
+    ServerScriptService:WaitForChild("EventManager")
+)
+
+print("[YIN YANG] Event System is ready!")
+
+task.wait(5)
+
+while true do
+    if not EventManager.GetActiveEvent() then
+        local success, message = EventManager.Start("EmeraldStorm")
+        print("[EventRunner]", success, message)
+    end
+
+    task.wait(95)
+
+    if not EventManager.GetActiveEvent() then
+        local success, message = EventManager.Start("YinYangAwakening")
+        print("[EventRunner]", success, message)
+    end
+
+    task.wait(145)
+end
+]]
+
+-- 5. สร้าง EventClient (LocalScript) รวม UI Prototype ใน StarterPlayerScripts
+local eventClientScript = StarterPlayerScripts:FindFirstChild("EventClient")
+if not eventClientScript then
+    eventClientScript = Instance.new("LocalScript")
+    eventClientScript.Name = "EventClient"
+    eventClientScript.Parent = StarterPlayerScripts
+end
+
+eventClientScript.Source = [[
+--[[(
+☯ YIN YANG UI — Standalone UI Framework & Event Client
+Version: 0.1.0
+]]
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+local GUI_NAME = "YinYangUI_Prototype"
+local old = playerGui:FindFirstChild(GUI_NAME)
+if old then old:Destroy() end
+
+local C = {
+  bg=Color3.fromRGB(10,13,17), panel=Color3.fromRGB(17,22,27), panel2=Color3.fromRGB(23,30,36),
+  hover=Color3.fromRGB(31,42,46), emerald=Color3.fromRGB(38,220,151), dark=Color3.fromRGB(20,133,96),
+  mint=Color3.fromRGB(160,255,216), text=Color3.fromRGB(242,247,245), muted=Color3.fromRGB(142,158,153),
+  border=Color3.fromRGB(45,66,61), white=Color3.fromRGB(255,255,255)
+}
+local function make(class, props, parent)
+  local o=Instance.new(class); for k,v in pairs(props or {}) do o[k]=v end; o.Parent=parent; return o
+end
+local function round(p,r) make("UICorner",{CornerRadius=UDim.new(0,r or 10)},p) end
+local function outline(p,col,tr,th) make("UIStroke",{Color=col or C.border,Transparency=tr or 0,Thickness=th or 1},p) end
+local function pad(p,l,r,t,b) make("UIPadding",{PaddingLeft=UDim.new(0,l or 0),PaddingRight=UDim.new(0,r or 0),PaddingTop=UDim.new(0,t or 0),PaddingBottom=UDim.new(0,b or 0)},p) end
+local function label(parent,txt,size,color,font,align)
+ return make("TextLabel",{BackgroundTransparency=1,Text=txt or "",Font=font or Enum.Font.Gotham,TextSize=size or 14,TextColor3=color or C.text,TextXAlignment=align or Enum.TextXAlignment.Left,TextYAlignment=Enum.TextYAlignment.Center,Size=UDim2.new(1,0,0,22)},parent)
+end
+local function tw(o,d,p) local t=TweenService:Create(o,TweenInfo.new(d or .18,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),p);t:Play();return t end
+local screen=make("ScreenGui",{Name=GUI_NAME,ResetOnSpawn=false,IgnoreGuiInset=true,ZIndexBehavior=Enum.ZIndexBehavior.Sibling,DisplayOrder=30},playerGui)
+
+-- Floating yin-yang launcher
+local launcher=make("TextButton",{Name="YinYangLauncher",Text="☯",Font=Enum.Font.GothamBlack,TextSize=36,TextColor3=C.mint,BackgroundColor3=C.panel,AutoButtonColor=false,Size=UDim2.fromOffset(58,58),Position=UDim2.new(0,18,.42,0),ZIndex=20},screen)
+round(launcher,30); outline(launcher,C.emerald,.1,2)
+make("UIGradient",{Color=ColorSequence.new({ColorSequenceKeypoint.new(0,C.panel2),ColorSequenceKeypoint.new(1,Color3.fromRGB(8,42,32))}),Rotation=45},launcher)
+local launcherScale=make("UIScale",{Scale=1},launcher)
+launcher.MouseEnter:Connect(function() tw(launcherScale,.15,{Scale=1.06}) end)
+launcher.MouseLeave:Connect(function() tw(launcherScale,.15,{Scale=1}) end)
+
+-- Toggle main window with launcher
+local windowVisible = true
+launcher.MouseButton1Click:Connect(function()
+    windowVisible = not windowVisible
+    main.Visible = windowVisible
+end)
+
+do
+ local dragging,dragInput,dragStart,startPos
+ launcher.InputBegan:Connect(function(input)
+  if input.UserInputType==Enum.UserInputType.MouseButton1 or input.UserInputType==Enum.UserInputType.Touch then
+   dragging=true;dragStart=input.Position;startPos=launcher.Position
+   input.Changed:Connect(function() if input.UserInputState==Enum.UserInputState.End then dragging=false end end)
+  end
+ end)
+ launcher.InputChanged:Connect(function(input) if input.UserInputType==Enum.UserInputType.MouseMovement or input.UserInputType==Enum.UserInputType.Touch then dragInput=input end end)
+ UserInputService.InputChanged:Connect(function(input)
+  if dragging and (input==dragInput or input.UserInputType==Enum.UserInputType.Touch) then local d=input.Position-dragStart;launcher.Position=UDim2.new(startPos.X.Scale,startPos.X.Offset+d.X,startPos.Y.Scale,startPos.Y.Offset+d.Y) end
+ end)
+end
+
+local main=make("Frame",{Name="MainWindow",BackgroundColor3=C.bg,BorderSizePixel=0,Size=UDim2.fromOffset(720,470),Position=UDim2.new(.5,-360,.5,-235),ClipsDescendants=true},screen)
+round(main,16);outline(main,C.border,.15,1.2)
+make("UISizeConstraint",{MinSize=Vector2.new(310,390),MaxSize=Vector2.new(900,650)},main)
+local mainScale=make("UIScale",{Scale=1},main)
+local top=make("Frame",{Name="TopBar",BackgroundColor3=C.panel,BorderSizePixel=0,Size=UDim2.new(1,0,0,64)},main);round(top,16)
+make("Frame",{BackgroundColor3=C.panel,BorderSizePixel=0,Position=UDim2.new(0,0,1,-16),Size=UDim2.new(1,0,0,16)},top)
+local logo=make("Frame",{BackgroundColor3=Color3.fromRGB(9,40,31),Size=UDim2.fromOffset(42,42),Position=UDim2.fromOffset(14,11)},top);round(logo,13);outline(logo,C.dark,0,1)
+local logoText=label(logo,"☯",29,C.mint,Enum.Font.GothamBlack,Enum.TextXAlignment.Center);logoText.Size=UDim2.fromScale(1,1)
+local brand=label(top,"YIN YANG UI",18,C.text,Enum.Font.GothamBold);brand.Position=UDim2.fromOffset(66,10);brand.Size=UDim2.new(0,200,0,25)
+local subtitle=label(top,"STANDALONE INTERFACE  •  EVENT SYSTEM",9,C.emerald,Enum.Font.GothamMedium);subtitle.Position=UDim2.fromOffset(67,34);subtitle.Size=UDim2.new(0,260,0,15)
+local pill=make("Frame",{BackgroundColor3=Color3.fromRGB(12,53,40),Size=UDim2.fromOffset(91,26),Position=UDim2.new(1,-145,0,19)},top);round(pill,13)
+local dot=make("Frame",{BackgroundColor3=C.emerald,Size=UDim2.fromOffset(7,7),Position=UDim2.fromOffset(10,9)},pill);round(dot,5)
+local status=label(pill,"UI READY",10,C.mint,Enum.Font.GothamBold);status.Position=UDim2.fromOffset(23,2);status.Size=UDim2.new(1,-27,1,-4)
+local minimize=make("TextButton",{Text="—",Font=Enum.Font.GothamBold,TextSize=18,TextColor3=C.muted,BackgroundColor3=C.panel2,AutoButtonColor=false,Size=UDim2.fromOffset(30,30),Position=UDim2.new(1,-44,0,17)},top);round(minimize,9)
+minimize.MouseButton1Click:Connect(function()
+    windowVisible = false
+    main.Visible = false
+end)
+
+local sidebar=make("Frame",{Name="Sidebar",BackgroundColor3=C.panel,BorderSizePixel=0,Position=UDim2.fromOffset(12,76),Size=UDim2.new(0,174,1,-88)},main);round(sidebar,12);pad(sidebar,9,9,12,10)
+local navHeader=label(sidebar,"NAVIGATION",10,C.muted,Enum.Font.GothamBold);navHeader.Size=UDim2.new(1,0,0,20);navHeader.Position=UDim2.fromOffset(3,0)
+local navList=make("Frame",{BackgroundTransparency=1,Position=UDim2.fromOffset(0,28),Size=UDim2.new(1,0,1,-88)},sidebar)
+make("UIListLayout",{Padding=UDim.new(0,6),SortOrder=Enum.SortOrder.LayoutOrder},navList)
+local profile=make("Frame",{Name="ProfileCard",BackgroundColor3=C.panel2,Size=UDim2.new(1,0,0,54),Position=UDim2.new(0,0,1,-54)},sidebar);round(profile,10)
+local avatar=make("Frame",{BackgroundColor3=Color3.fromRGB(29,89,67),Size=UDim2.fromOffset(34,34),Position=UDim2.fromOffset(8,10)},profile);round(avatar,17)
+local avatarText=label(avatar,string.sub(player.DisplayName or player.Name,1,1):upper(),16,C.mint,Enum.Font.GothamBold,Enum.TextXAlignment.Center);avatarText.Size=UDim2.fromScale(1,1)
+local profileName=label(profile,player.DisplayName or player.Name,11,C.text,Enum.Font.GothamBold);profileName.Position=UDim2.fromOffset(49,8);profileName.Size=UDim2.new(1,-55,0,17)
+local profileRole=label(profile,"UI PREVIEW",9,C.muted,Enum.Font.Gotham);profileRole.Position=UDim2.fromOffset(49,26);profileRole.Size=UDim2.new(1,-55,0,14)
+
+local content=make("Frame",{Name="Content",BackgroundTransparency=1,Position=UDim2.fromOffset(198,76),Size=UDim2.new(1,-210,1,-88)},main)
+local pageTitle=label(content,"Overview",22,C.text,Enum.Font.GothamBold);pageTitle.Size=UDim2.new(1,0,0,30)
+local pageDesc=label(content,"A clean foundation for your own UI system.",11,C.muted,Enum.Font.Gotham);pageDesc.Position=UDim2.fromOffset(0,30);pageDesc.Size=UDim2.new(1,0,0,20)
+local search=make("TextBox",{Name="Search",BackgroundColor3=C.panel,BorderSizePixel=0,PlaceholderText="⌕   Search this page...",PlaceholderColor3=C.muted,Text="",TextColor3=C.text,Font=Enum.Font.Gotham,TextSize=12,ClearTextOnFocus=false,TextXAlignment=Enum.TextXAlignment.Left,Size=UDim2.new(1,0,0,36),Position=UDim2.fromOffset(0,59)},content);round(search,10);outline(search,C.border,.4,1);pad(search,12,10,0,0)
+local host=make("ScrollingFrame",{Name="PageHost",BackgroundTransparency=1,BorderSizePixel=0,Position=UDim2.fromOffset(0,106),Size=UDim2.new(1,0,1,-106),CanvasSize=UDim2.new(0,0,0,0),AutomaticCanvasSize=Enum.AutomaticSize.Y,ScrollBarThickness=3,ScrollBarImageColor3=C.dark},content)
+local hostLayout=make("UIListLayout",{Padding=UDim.new(0,12),SortOrder=Enum.SortOrder.LayoutOrder},host)
+local pages,navButtons={},{}
+local currentPage="Overview"
+local toast
+
+local function showToast(title,msg)
+ if toast then toast:Destroy() end
+ toast=make("Frame",{Name="Toast",BackgroundColor3=C.panel,Size=UDim2.new(0,270,0,72),Position=UDim2.new(1,-290,1,25),ZIndex=100},screen);round(toast,12);outline(toast,C.dark,0,1)
+ local accent=make("Frame",{BackgroundColor3=C.emerald,Size=UDim2.new(0,3,1,-20),Position=UDim2.fromOffset(0,10),ZIndex=101},toast);round(accent,2)
+ local t=label(toast,title,12,C.text,Enum.Font.GothamBold);t.Position=UDim2.fromOffset(14,10);t.Size=UDim2.new(1,-25,0,20);t.ZIndex=101
+ local d=label(toast,msg,10,C.muted,Enum.Font.Gotham);d.Position=UDim2.fromOffset(14,33);d.Size=UDim2.new(1,-25,0,23);d.TextWrapped=true;d.ZIndex=101
+ tw(toast,.25,{Position=UDim2.new(1,-290,1,-94)})
+ task.delay(2.8,function() if toast and toast.Parent then local oldToast=toast;tw(oldToast,.2,{Position=UDim2.new(1,-290,1,25)});task.delay(.22,function()if oldToast.Parent then oldToast:Destroy()end;if toast==oldToast then toast=nil end end)end end)
+end
+
+local function clearPage() for _,v in ipairs(host:GetChildren()) do if v:IsA("GuiObject") and v~=hostLayout then v:Destroy() end end end
+local function section(title,desc)
+ local card=make("Frame",{Name="Section_"..title:gsub("%W",""),BackgroundColor3=C.panel,BorderSizePixel=0,Size=UDim2.new(1,0,0,desc and 58 or 40),AutomaticSize=Enum.AutomaticSize.Y},host);round(card,11);outline(card,C.border,.5,1);pad(card,13,13,10,10)
+ local t=label(card,title,13,C.text,Enum.Font.GothamBold);t.Size=UDim2.new(1,0,0,20)
+ if desc then local d=label(card,desc,10,C.muted,Enum.Font.Gotham);d.Position=UDim2.fromOffset(0,22);d.Size=UDim2.new(1,0,0,18)end
+ local inner=make("Frame",{BackgroundTransparency=1,Position=UDim2.fromOffset(0,desc and 44 or 25),Size=UDim2.new(1,0,0,0),AutomaticSize=Enum.AutomaticSize.Y},card)
+ make("UIListLayout",{Padding=UDim.new(0,7),SortOrder=Enum.SortOrder.LayoutOrder},inner)
+ return inner
+end
+local function rowBase(parent,h) local r=make("Frame",{BackgroundColor3=C.panel2,BorderSizePixel=0,Size=UDim2.new(1,0,0,h or 42)},parent);round(r,8);return r end
+local function addInfo(parent,title,desc)
+ local r=rowBase(parent,48);local t=label(r,title,11,C.text,Enum.Font.GothamMedium);t.Position=UDim2.fromOffset(10,5);t.Size=UDim2.new(1,-20,0,17)
+ local d=label(r,desc,9,C.muted,Enum.Font.Gotham);d.Position=UDim2.fromOffset(10,23);d.Size=UDim2.new(1,-20,0,15);return r
+end
+local function addButton(parent,title,caption,callback)
+ local r=rowBase(parent,44);local t=label(r,title,11,C.text,Enum.Font.GothamMedium);t.Position=UDim2.fromOffset(10,0);t.Size=UDim2.new(1,-112,1,0)
+ local b=make("TextButton",{Text=caption or "Open",Font=Enum.Font.GothamBold,TextSize=10,TextColor3=C.mint,BackgroundColor3=Color3.fromRGB(15,74,54),AutoButtonColor=false,Size=UDim2.fromOffset(82,28),Position=UDim2.new(1,-92,.5,-14)},r);round(b,8)
+ b.MouseButton1Click:Connect(function()tw(b,.1,{BackgroundColor3=C.dark});task.delay(.12,function()if b.Parent then tw(b,.15,{BackgroundColor3=Color3.fromRGB(15,74,54)})end end);if callback then callback()else showToast("Prototype control",title.." is UI-only for now.")end end);return r
+end
+local function addToggle(parent,title,default)
+ local r=rowBase(parent,42);local t=label(r,title,11,C.text,Enum.Font.GothamMedium);t.Position=UDim2.fromOffset(10,0);t.Size=UDim2.new(1,-72,1,0)
+ local track=make("TextButton",{Text="",AutoButtonColor=false,BackgroundColor3=default and C.dark or Color3.fromRGB(55,64,62),Size=UDim2.fromOffset(42,23),Position=UDim2.new(1,-53,.5,-11)},r);round(track,12)
+ local knob=make("Frame",{BackgroundColor3=C.white,Size=UDim2.fromOffset(17,17),Position=default and UDim2.new(1,-20,.5,-8) or UDim2.fromOffset(3,3)},track);round(knob,10)
+ local enabled=default==true;track.MouseButton1Click:Connect(function()enabled=not enabled;tw(track,.15,{BackgroundColor3=enabled and C.dark or Color3.fromRGB(55,64,62)});tw(knob,.15,{Position=enabled and UDim2.new(1,-20,.5,-8) or UDim2.fromOffset(3,3)});showToast(title,enabled and "Demo toggle: ON" or "Demo toggle: OFF")end);return r
+end
+local function addSlider(parent,title,initial,minV,maxV)
+ local r=rowBase(parent,58);local t=label(r,title,11,C.text,Enum.Font.GothamMedium);t.Position=UDim2.fromOffset(10,5);t.Size=UDim2.new(1,-80,0,17)
+ local vl=label(r,tostring(initial),10,C.mint,Enum.Font.GothamBold,Enum.TextXAlignment.Right);vl.Position=UDim2.new(1,-62,0,5);vl.Size=UDim2.fromOffset(50,17)
+ local track=make("Frame",{BackgroundColor3=Color3.fromRGB(48,62,58),Size=UDim2.new(1,-20,0,5),Position=UDim2.fromOffset(10,37)},r);round(track,5)
+ local ratio=math.clamp((initial-minV)/(maxV-minV),0,1);local fill=make("Frame",{BackgroundColor3=C.emerald,Size=UDim2.new(ratio,0,1,0)},track);round(fill,5)
+ local knob=make("TextButton",{Text="",AutoButtonColor=false,BackgroundColor3=C.mint,Size=UDim2.fromOffset(13,13),Position=UDim2.new(ratio,-6,.5,-6)},track);round(knob,7)
+ local dragging=false
+ local function setX(x) local w=math.max(track.AbsoluteSize.X,1);local p=math.clamp((x-track.AbsolutePosition.X)/w,0,1);local value=math.floor(minV+(maxV-minV)*p+.5);fill.Size=UDim2.new(p,0,1,0);knob.Position=UDim2.new(p,-6,.5,-6);vl.Text=tostring(value)end
+ knob.InputBegan:Connect(function(i)if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then dragging=true end end)
+ UserInputService.InputEnded:Connect(function(i)if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then dragging=false end end)
+ UserInputService.InputChanged:Connect(function(i)if dragging and(i.UserInputType==Enum.UserInputType.MouseMovement or i.UserInputType==Enum.UserInputType.Touch)then setX(i.Position.X)end end)
+ track.InputBegan:Connect(function(i)if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then setX(i.Position.X)end end);return r
+end
+
+lo
