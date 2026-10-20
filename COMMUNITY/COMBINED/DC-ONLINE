@@ -1,0 +1,571 @@
+local _version = "1.6.66"
+local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/download/" .. _version .. "/main.lua"))() 
+
+local Window = WindUI:CreateWindow({
+    Title = "DROP Hub", -- window title
+    Icon = "https://cdn.phototourl.com/member/2026-10-16-c8fd00c7-3c45-446d-bf02-956f9ca17068.jpg", -- lucide icon or "rbxassetid://" or URL. optional
+    Author = "by developer", -- window subtitle. optional
+
+    WindUI:AddTheme({
+    Name = "Dark", -- theme name
+    
+    Accent = Color3.fromHex("#18181b"),
+    Background = Color3.fromHex("#101010"),
+    Outline = Color3.fromHex("#FFFFFF"),
+    Text = Color3.fromHex("#FFFFFF"),
+    Placeholder = Color3.fromHex("#7a7a7a"),
+    Button = Color3.fromHex("#52525b"),
+    Icon = Color3.fromHex("#a1a1aa"),
+  
+       WindUI:Notify({
+       Title = "Success",
+       Content = "Operation completed successfully",
+       Duration = 3
+    })
+  })
+})
+
+local Popup = WindUI:Popup({
+    Title = "Welcome",
+    Content = "Welcome to our application!",
+    Buttons = {
+        {
+            Title = "Get Started",
+            Callback = function()
+                print("Getting started...")
+            end
+        }
+    }
+})
+
+-- =========================================================================
+-- ☯️ YIN YANG EMERALD HUB | UNIVERSAL EXECUTOR EDITION (2026) ☯️
+-- รองรับการใช้งานบน Delta, Fluxus, Codex และ Executor บนมือถือทุกตัว
+-- =========================================================================
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local Lighting = game:GetService("Lighting")
+local CollectionService = game:GetService("CollectionService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local CoreGui = game:GetService("CoreGui")
+
+local player = Players.LocalPlayer
+
+-- ตรวจสอบและเลือก Parent UI ให้รองรับ Executor
+local parentGui = gethui and gethui() or (syn and syn.protect_gui and CoreGui) or CoreGui
+
+-- ลบ UI เก่าหากมีรันซ้ำ
+pcall(function()
+    if parentGui:FindFirstChild("YinYangEmeraldHub") then
+        parentGui.YinYangEmeraldHub:Destroy()
+    end
+end)
+
+-- ===== CONFIG =====
+local CONFIG = {
+    WalkSpeed = 28,
+    JumpPower = 65,
+    FlySpeed = 55,
+    ItemScanRadius = 100,
+    CollectibleTag = "Collectible",
+    CollectRemoteName = "CollectItem",
+}
+
+local state = {
+    flying = false,
+    fast = false,
+    highJump = false,
+    noclip = false,
+    fullbright = false,
+    markers = false,
+    platform = false,
+    uiOpen = true,
+    connections = {},
+}
+
+local character, humanoid, root
+local flyVelocity, flyGyro
+local originalLighting = nil
+local originalWalkSpeed, originalJumpPower, originalJumpHeight
+local markerFolder
+local platformPart
+
+local function getCharacter()
+    character = player.Character
+    humanoid = character and character:FindFirstChildOfClass("Humanoid")
+    root = character and character:FindFirstChild("HumanoidRootPart")
+    return character, humanoid, root
+end
+
+getCharacter()
+
+player.CharacterAdded:Connect(function()
+    task.wait(0.5)
+    getCharacter()
+    if state.fast and humanoid then humanoid.WalkSpeed = CONFIG.WalkSpeed end
+    if state.highJump and humanoid then
+        humanoid.UseJumpPower = true
+        humanoid.JumpPower = CONFIG.JumpPower
+    end
+end)
+
+-- ===== UI MAIN GUI =====
+local gui = Instance.new("ScreenGui")
+gui.Name = "YinYangEmeraldHub"
+gui.ResetOnSpawn = false
+gui.Parent = parentGui
+
+-- ===== FLOATING YIN-YANG ICON =====
+local FloatingButton = Instance.new("ImageButton")
+FloatingButton.Name = "FloatingYinYangIcon"
+FloatingButton.Parent = gui
+FloatingButton.BackgroundColor3 = Color3.fromRGB(11, 24, 22)
+FloatingButton.BorderColor3 = Color3.fromRGB(35, 220, 145)
+FloatingButton.BorderSizePixel = 2
+FloatingButton.Position = UDim2.new(0.05, 0, 0.2, 0)
+FloatingButton.Size = UDim2.new(0, 60, 0, 60)
+FloatingButton.Image = "https://cdn.phototourl.com/member/2026-10-16-c8fd00c7-3c45-446d-bf02-956f9ca17068.jpg"
+FloatingButton.ScaleType = Enum.ScaleType.Stretch
+FloatingButton.Active = true
+FloatingButton.Draggable = true
+
+Instance.new("UICorner", FloatingButton).CornerRadius = UDim.new(1, 0)
+
+-- ไอคอนหมุนตลอดเวลา
+task.spawn(function()
+    local rot = 0
+    while FloatingButton and FloatingButton.Parent do
+        rot = (rot + 3) % 360
+        FloatingButton.Rotation = rot
+        task.wait(0.04)
+    end
+end)
+
+-- ===== MAIN FRAME =====
+local main = Instance.new("Frame")
+main.Name = "Main"
+main.Size = UDim2.fromOffset(560, 390)
+main.Position = UDim2.new(0.5, -280, 0.5, -195)
+main.BackgroundColor3 = Color3.fromRGB(11, 24, 22)
+main.BorderSizePixel = 0
+main.Visible = true
+main.Parent = gui
+Instance.new("UICorner", main).CornerRadius = UDim.new(0, 14)
+
+local stroke = Instance.new("UIStroke")
+stroke.Color = Color3.fromRGB(35, 220, 145)
+stroke.Thickness = 1.5
+stroke.Parent = main
+
+local top = Instance.new("Frame")
+top.Size = UDim2.new(1, 0, 0, 48)
+top.BackgroundColor3 = Color3.fromRGB(14, 48, 39)
+top.BorderSizePixel = 0
+top.Parent = main
+Instance.new("UICorner", top).CornerRadius = UDim.new(0, 14)
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -100, 1, 0)
+title.Position = UDim2.fromOffset(16, 0)
+title.BackgroundTransparency = 1
+title.Font = Enum.Font.GothamBold
+title.Text = "☯ YIN YANG  |  EMERALD HUB"
+title.TextColor3 = Color3.fromRGB(100, 255, 185)
+title.TextSize = 16
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Parent = top
+
+local close = Instance.new("TextButton")
+close.Size = UDim2.fromOffset(36, 30)
+close.Position = UDim2.new(1, -46, 0, 9)
+close.BackgroundColor3 = Color3.fromRGB(145, 45, 55)
+close.Text = "×"
+close.TextColor3 = Color3.new(1, 1, 1)
+close.Font = Enum.Font.GothamBold
+close.TextSize = 22
+close.Parent = top
+Instance.new("UICorner", close).CornerRadius = UDim.new(0, 8)
+
+-- ปุ่มไอคอนลอยสำหรับเปิด/ปิดเมนู
+FloatingButton.MouseButton1Click:Connect(function()
+    state.uiOpen = not state.uiOpen
+    main.Visible = state.uiOpen
+end)
+
+close.MouseButton1Click:Connect(function()
+    state.uiOpen = false
+    main.Visible = false
+end)
+
+local tabs = Instance.new("Frame")
+tabs.Size = UDim2.new(1, -20, 0, 38)
+tabs.Position = UDim2.fromOffset(10, 58)
+tabs.BackgroundTransparency = 1
+tabs.Parent = main
+
+local tabLayout = Instance.new("UIListLayout")
+tabLayout.FillDirection = Enum.FillDirection.Horizontal
+tabLayout.Padding = UDim.new(0, 6)
+tabLayout.SortOrder = Enum.SortOrder.LayoutOrder
+tabLayout.Parent = tabs
+
+local content = Instance.new("ScrollingFrame")
+content.Size = UDim2.new(1, -20, 1, -110)
+content.Position = UDim2.fromOffset(10, 102)
+content.BackgroundColor3 = Color3.fromRGB(15, 31, 28)
+content.BorderSizePixel = 0
+content.ScrollBarThickness = 5
+content.ScrollBarImageColor3 = Color3.fromRGB(35, 220, 145)
+content.CanvasSize = UDim2.new()
+content.AutomaticCanvasSize = Enum.AutomaticSize.Y
+content.Parent = main
+Instance.new("UICorner", content).CornerRadius = UDim.new(0, 10)
+
+local contentPadding = Instance.new("UIPadding")
+contentPadding.PaddingTop = UDim.new(0, 10)
+contentPadding.PaddingBottom = UDim.new(0, 10)
+contentPadding.PaddingLeft = UDim.new(0, 10)
+contentPadding.PaddingRight = UDim.new(0, 10)
+contentPadding.Parent = content
+
+local list = Instance.new("UIListLayout")
+list.Padding = UDim.new(0, 7)
+list.SortOrder = Enum.SortOrder.LayoutOrder
+list.Parent = content
+
+local function clearContent()
+    for _, child in ipairs(content:GetChildren()) do
+        if child ~= list and child ~= contentPadding then child:Destroy() end
+    end
+end
+
+local function addSection(text)
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -4, 0, 26)
+    label.BackgroundTransparency = 1
+    label.Text = "  " .. text
+    label.TextColor3 = Color3.fromRGB(100, 255, 185)
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 13
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = content
+    return label
+end
+
+local function addButton(labelText, callback, initial)
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(1, -4, 0, 36)
+    button.BackgroundColor3 = initial and Color3.fromRGB(20, 105, 75) or Color3.fromRGB(28, 53, 47)
+    button.TextColor3 = Color3.fromRGB(235, 255, 246)
+    button.Font = Enum.Font.Gotham
+    button.TextSize = 12
+    button.Text = labelText .. (initial and "  [เปิด]" or "  [ปิด]")
+    button.AutoButtonColor = true
+    button.Parent = content
+    Instance.new("UICorner", button).CornerRadius = UDim.new(0, 8)
+    local enabled = initial or false
+    button.MouseButton1Click:Connect(function()
+        enabled = not enabled
+        button.BackgroundColor3 = enabled and Color3.fromRGB(20, 105, 75) or Color3.fromRGB(28, 53, 47)
+        button.Text = labelText .. (enabled and "  [เปิด]" or "  [ปิด]")
+        callback(enabled)
+    end)
+    return button
+end
+
+local function addSlider(labelText, minValue, maxValue, defaultValue, callback)
+    local wrap = Instance.new("Frame")
+    wrap.Size = UDim2.new(1, -4, 0, 56)
+    wrap.BackgroundColor3 = Color3.fromRGB(22, 43, 38)
+    wrap.Parent = content
+    Instance.new("UICorner", wrap).CornerRadius = UDim.new(0, 8)
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -20, 0, 24)
+    label.Position = UDim2.fromOffset(10, 2)
+    label.BackgroundTransparency = 1
+    label.TextColor3 = Color3.fromRGB(235, 255, 246)
+    label.Font = Enum.Font.Gotham
+    label.TextSize = 12
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Text = labelText .. ": " .. tostring(defaultValue)
+    label.Parent = wrap
+
+    local bar = Instance.new("Frame")
+    bar.Size = UDim2.new(1, -20, 0, 8)
+    bar.Position = UDim2.fromOffset(10, 35)
+    bar.BackgroundColor3 = Color3.fromRGB(45, 75, 65)
+    bar.Parent = wrap
+    Instance.new("UICorner", bar).CornerRadius = UDim.new(1, 0)
+
+    local fill = Instance.new("Frame")
+    fill.Size = UDim2.new((defaultValue - minValue) / (maxValue - minValue), 0, 1, 0)
+    fill.BackgroundColor3 = Color3.fromRGB(35, 220, 145)
+    fill.Parent = bar
+    Instance.new("UICorner", fill).CornerRadius = UDim.new(1, 0)
+
+    local knob = Instance.new("TextButton")
+    knob.Size = UDim2.fromOffset(18, 18)
+    knob.AnchorPoint = Vector2.new(0.5, 0.5)
+    knob.Position = UDim2.new(fill.Size.X.Scale, 0, 0.5, 0)
+    knob.BackgroundColor3 = Color3.fromRGB(220, 255, 235)
+    knob.Text = ""
+    knob.Parent = bar
+    Instance.new("UICorner", knob).CornerRadius = UDim.new(1, 0)
+
+    local dragging = false
+    local function update(inputX)
+        local width = math.max(1, bar.AbsoluteSize.X)
+        local alpha = math.clamp((inputX - bar.AbsolutePosition.X) / width, 0, 1)
+        local value = math.floor(minValue + (maxValue - minValue) * alpha)
+        fill.Size = UDim2.new(alpha, 0, 1, 0)
+        knob.Position = UDim2.new(alpha, 0, 0.5, 0)
+        label.Text = labelText .. ": " .. tostring(value)
+        callback(value)
+    end
+    knob.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = true end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then update(input.Position.X) end
+    end)
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = false end
+    end)
+end
+
+-- ===== FEATURES =====
+local function setFast(enabled)
+    state.fast = enabled
+    local _, hum = getCharacter()
+    if hum then
+        if enabled then
+            originalWalkSpeed = originalWalkSpeed or hum.WalkSpeed
+            hum.WalkSpeed = CONFIG.WalkSpeed
+        else
+            hum.WalkSpeed = originalWalkSpeed or 16
+            originalWalkSpeed = nil
+        end
+    end
+end
+
+local function setHighJump(enabled)
+    state.highJump = enabled
+    local _, hum = getCharacter()
+    if hum then
+        if enabled then
+            originalJumpPower = originalJumpPower or hum.JumpPower
+            hum.UseJumpPower = true
+            hum.JumpPower = CONFIG.JumpPower
+        else
+            hum.JumpPower = originalJumpPower or 50
+            originalJumpPower = nil
+        end
+    end
+end
+
+local function setFly(enabled)
+    state.flying = enabled
+    local _, hum, hrp = getCharacter()
+    if not hrp or not hum then return end
+    if enabled then
+        flyVelocity = Instance.new("BodyVelocity")
+        flyVelocity.Name = "HubFlyVelocity"
+        flyVelocity.MaxForce = Vector3.new(1e6, 1e6, 1e6)
+        flyVelocity.Velocity = Vector3.zero
+        flyVelocity.Parent = hrp
+
+        flyGyro = Instance.new("BodyGyro")
+        flyGyro.Name = "HubFlyGyro"
+        flyGyro.MaxTorque = Vector3.new(1e6, 1e6, 1e6)
+        flyGyro.P = 9000
+        flyGyro.CFrame = hrp.CFrame
+        flyGyro.Parent = hrp
+        hum.PlatformStand = true
+    else
+        if flyVelocity then flyVelocity:Destroy(); flyVelocity = nil end
+        if flyGyro then flyGyro:Destroy(); flyGyro = nil end
+        hum.PlatformStand = false
+    end
+end
+
+local function setNoclip(enabled)
+    state.noclip = enabled
+end
+
+local function setFullbright(enabled)
+    state.fullbright = enabled
+    if enabled then
+        Lighting.Brightness = 3
+        Lighting.ClockTime = 14
+        Lighting.GlobalShadows = false
+        Lighting.Ambient = Color3.fromRGB(180, 180, 180)
+    else
+        Lighting.Brightness = 1
+        Lighting.GlobalShadows = true
+    end
+end
+
+local function setPlatform(enabled)
+    state.platform = enabled
+    if enabled then
+        local _, _, hrp = getCharacter()
+        if not hrp then return end
+        platformPart = Instance.new("Part")
+        platformPart.Name = "LocalHubPlatform"
+        platformPart.Size = Vector3.new(16, 1, 16)
+        platformPart.Anchored = true
+        platformPart.CanCollide = true
+        platformPart.Transparency = 0.2
+        platformPart.Material = Enum.Material.Neon
+        platformPart.Color = Color3.fromRGB(35, 220, 145)
+        platformPart.CFrame = hrp.CFrame * CFrame.new(0, -4, 0)
+        platformPart.Parent = workspace
+    elseif platformPart then
+        platformPart:Destroy()
+        platformPart = nil
+    end
+end
+
+local function clearMarkers()
+    if markerFolder then markerFolder:Destroy(); markerFolder = nil end
+end
+
+local function setMarkers(enabled)
+    state.markers = enabled
+    clearMarkers()
+    if not enabled then return end
+    markerFolder = Instance.new("Folder")
+    markerFolder.Name = "LocalCollectibleMarkers"
+    markerFolder.Parent = workspace
+    
+    for _, item in ipairs(workspace:GetDescendants()) do
+        if item:IsA("BasePart") and (item.Name:lower():find("token") or item.Name:lower():find("collect") or item.Name:lower():find("item")) then
+            local bill = Instance.new("BillboardGui")
+            bill.Name = "CollectibleMarker"
+            bill.Size = UDim2.fromOffset(150, 30)
+            bill.StudsOffset = Vector3.new(0, 2.5, 0)
+            bill.AlwaysOnTop = true
+            bill.Adornee = item
+            bill.Parent = markerFolder
+            
+            local txt = Instance.new("TextLabel")
+            txt.Size = UDim2.fromScale(1, 1)
+            txt.BackgroundTransparency = 1
+            txt.Text = "✦ " .. item.Name
+            txt.TextColor3 = Color3.fromRGB(100, 255, 185)
+            txt.TextStrokeTransparency = 0.35
+            txt.Font = Enum.Font.GothamBold
+            txt.TextSize = 13
+            txt.Parent = bill
+        end
+    end
+end
+
+-- ===== TAB PAGES =====
+local function renderTab(tabName)
+    clearContent()
+    if tabName == "เคลื่อนที่" then
+        addSection("ระบบเคลื่อนที่")
+        addButton("บิน / Fly", setFly, state.flying)
+        addButton("วิ่งเร็ว", setFast, state.fast)
+        addButton("กระโดดสูง", setHighJump, state.highJump)
+        addButton("เดินทะลุกำแพง / Noclip", setNoclip, state.noclip)
+        addSlider("ความเร็ววิ่ง", 16, 150, CONFIG.WalkSpeed, function(v)
+            CONFIG.WalkSpeed = v
+            if state.fast then setFast(true) end
+        end)
+        addSlider("พลังกระโดด", 50, 200, CONFIG.JumpPower, function(v)
+            CONFIG.JumpPower = v
+            if state.highJump then setHighJump(true) end
+        end)
+    elseif tabName == "มองเห็น/ไอเทม" then
+        addSection("ระบบสแกนไอเทม")
+        addButton("แสดงตำแหน่งไอเทมลอยฟ้า", setMarkers, state.markers)
+        addSection("ระบบแผนที่")
+        addButton("เพิ่มความสว่างมองทะลุมืด (Fullbright)", setFullbright, state.fullbright)
+        addButton("สร้างแท่นยืนลอยฟ้าชั่วคราว", setPlatform, state.platform)
+        addButton("ลบแท่นยืนชั่วคราว", function() setPlatform(false) end, false)
+    elseif tabName == "ตัวละคร" then
+        addSection("จัดการตัวละคร")
+        local reset = Instance.new("TextButton")
+        reset.Size = UDim2.new(1, -4, 0, 36)
+        reset.BackgroundColor3 = Color3.fromRGB(145, 45, 55)
+        reset.Text = "รีเซ็ตตัวละคร"
+        reset.TextColor3 = Color3.new(1, 1, 1)
+        reset.Font = Enum.Font.GothamBold
+        reset.TextSize = 12
+        reset.Parent = content
+        Instance.new("UICorner", reset).CornerRadius = UDim.new(0, 8)
+        reset.MouseButton1Click:Connect(function()
+            local _, hum = getCharacter()
+            if hum then hum.Health = 0 end
+        end)
+    elseif tabName == "ตั้งค่า" then
+        addSection("ข้อมูลและคีย์ลัด")
+        addSection("☯️ Yin Yang Emerald Hub (Universal)")
+        addSection("กดไอคอนหยินหยางลอยได้มุมจอเพื่อ เปิด/ปิด UI")
+    end
+end
+
+local tabNames = {"เคลื่อนที่", "มองเห็น/ไอเทม", "ตัวละคร", "ตั้งค่า"}
+for index, tabName in ipairs(tabNames) do
+    local tab = Instance.new("TextButton")
+    tab.LayoutOrder = index
+    tab.Size = UDim2.fromOffset(125, 34)
+    tab.BackgroundColor3 = index == 1 and Color3.fromRGB(20, 105, 75) or Color3.fromRGB(28, 53, 47)
+    tab.Text = tabName
+    tab.TextColor3 = Color3.fromRGB(235, 255, 246)
+    tab.Font = Enum.Font.Gotham
+    tab.TextSize = 12
+    tab.Parent = tabs
+    Instance.new("UICorner", tab).CornerRadius = UDim.new(0, 8)
+    tab.MouseButton1Click:Connect(function()
+        for _, sibling in ipairs(tabs:GetChildren()) do
+            if sibling:IsA("TextButton") then sibling.BackgroundColor3 = Color3.fromRGB(28, 53, 47) end
+        end
+        tab.BackgroundColor3 = Color3.fromRGB(20, 105, 75)
+        renderTab(tabName)
+    end)
+end
+
+-- ===== DRAG WINDOW =====
+do
+    local dragging, dragStart, startPos
+    top.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = main.Position
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - dragStart
+            main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = false end
+    end)
+end
+
+-- ===== FRAME UPDATE =====
+RunService.Stepped:Connect(function()
+    if state.noclip then
+        local char = player.Character
+        if char then
+            for _, part in ipairs(char:GetDescendants()) do
+                if part:IsA("BasePart") then part.CanCollide = false end
+            end
+        end
+    end
+end)
+
+RunService.RenderStepped:Connect(function()
+    if state.flying and flyVelocity and flyGyro then
+        local _, hum, hrp = getCharacter()
+        if not hrp or not hum then return end
+        local 
