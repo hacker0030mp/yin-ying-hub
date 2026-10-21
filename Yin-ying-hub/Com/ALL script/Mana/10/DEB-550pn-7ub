@@ -9,7 +9,6 @@ local TweenService = game:GetService("TweenService")
 local player = Players.LocalPlayer or Players.PlayerAdded:Wait()
 local CORRECT_KEY = "DRT-YUOP-68Hk-8jom"
 
-local VERIFY_MODULE_URL = ""
 local TARGET_SCRIPT_URL = "https://raw.githubusercontent.com/hacker0030mp/yin-ying-hub/refs/heads/main/Yin-ying-hub/Com/ALL%20script/Mana/Zip.mm"
 
 task.spawn(function()
@@ -146,21 +145,16 @@ task.spawn(function()
                 percentLabel.Text = "100% - ตรวจสอบสำเร็จ!"
                 task.wait(0.5)
 
-                -- ปิด UI ทิ้งทันทีแบบครั้งเดียวจบ ไม่วนซ้ำ
+                -- ปิด UI ทิ้งทันทีครั้งเดียวจบ
                 screen:Destroy()
 
-                -- เรียกใช้งาน Module ตรวจสอบ 1 ครั้งถ้วน แล้วรันสคริปต์เป้าหมาย
-                local success, verifyModule = pcall(function()
-                    return loadstring(game:HttpGet(https://raw.githubusercontent.com/hacker0030mp/yin-ying-hub/refs/heads/main/Yin-ying-hub/Com/ALL%20script/Mana/Zip.mm))()
+                -- รันสคริปต์เป้าหมายเพียงครั้งเดียวเท่านั้น
+                local success, err = pcall(function()
+                    loadstring(game:HttpGet(TARGET_SCRIPT_URL))()
                 end)
-
-                if success and type(verifyModule) == "table" and type(verifyModule.Check) == "function" then
-                    local isValid = verifyModule.Check("Source", "1.0", "1.0", string.rep("f", 64), function() return string.rep("f", 64) end)
-                    if isValid then
-                        loadstring(game:HttpGet(https://raw.githubusercontent.com/hacker0030mp/yin-ying-hub/refs/heads/main/Yin-ying-hub/Com/ALL%20script/Mana/Zip.mm))()
-                    end
-                else
-                    loadstring(game:HttpGet(https://raw.githubusercontent.com/hacker0030mp/yin-ying-hub/refs/heads/main/Yin-ying-hub/Com/ALL%20script/Mana/Zip.mm))()
+                
+                if not success then
+                    warn("[Error]: ", err)
                 end
             end)
         else
