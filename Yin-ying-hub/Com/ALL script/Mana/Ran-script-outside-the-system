@@ -1,48 +1,287 @@
---------------------------------------------------------------------------------
--- 5. หมวดหมู่สุดท้าย: รันสคริปต์นอกระบบ (Order: 5 - อยู่ล่างสุดเสมอ)
---------------------------------------------------------------------------------
-local pExt = createTab("รันสคริปต์นอกระบบ", "🌌", 5)
+--[=[
+    ☯ YIN YANG HUB — UI STAR ICON EDITION
+    ผู้พัฒนา: YIN YANG TEAM x GALACTIC HUB
+]=]
+
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer or Players.PlayerAdded:Wait()
+
+local GUI_NAME = "YinYangHub_StarUI"
+local parentScreen = (gethui and gethui()) or LocalPlayer:WaitForChild("PlayerGui")
+
+local old = parentScreen:FindFirstChild(GUI_NAME)
+if old then old:Destroy() end
+
+-- Theme Colors
+local C = {
+    bg = Color3.fromRGB(15, 18, 24),
+    sidebar = Color3.fromRGB(20, 24, 32),
+    content = Color3.fromRGB(25, 31, 41),
+    panel = Color3.fromRGB(32, 40, 52),
+    hover = Color3.fromRGB(45, 56, 72),
+    active = Color3.fromRGB(38, 220, 151),
+    mint = Color3.fromRGB(160, 255, 216),
+    text = Color3.fromRGB(242, 247, 245),
+    muted = Color3.fromRGB(140, 155, 160),
+    border = Color3.fromRGB(45, 65, 75),
+    red = Color3.fromRGB(255, 85, 85),
+    blue = Color3.fromRGB(85, 170, 255),
+    purple = Color3.fromRGB(180, 100, 255),
+    gold = Color3.fromRGB(255, 215, 0)
+}
+
+local function make(class, props, parent)
+    local o = Instance.new(class)
+    for k, v in pairs(props or {}) do o[k] = v end
+    o.Parent = parent
+    return o
+end
+
+local function round(p, r) make("UICorner", {CornerRadius = UDim.new(0, r or 8)}, p) end
+local function outline(p, col, tr, th) make("UIStroke", {Color = col or C.border, Transparency = tr or 0, Thickness = th or 1}, p) end
+
+local screen = make("ScreenGui", {Name = GUI_NAME, ResetOnSpawn = false, IgnoreGuiInset = true, DisplayOrder = 999}, parentScreen)
+
+-- Floating Launcher Button (ไอคอนรูปดาว ★ หมุนวน)
+local launcher = make("TextButton", {
+    Name = "Launcher",
+    Text = "",
+    BackgroundColor3 = C.sidebar,
+    AutoButtonColor = false,
+    Size = UDim2.fromOffset(48, 48),
+    Position = UDim2.new(0, 15, 0.4, 0),
+    ZIndex = 200
+}, screen)
+round(launcher, 24); outline(launcher, C.gold, 0.1, 1.5)
+
+local iconLabel = make("TextLabel", {
+    BackgroundTransparency = 1,
+    Text = "★",
+    Font = Enum.Font.GothamBlack,
+    TextSize = 24,
+    TextColor3 = C.gold,
+    Size = UDim2.new(1, 0, 1, 0),
+    ZIndex = 201
+}, launcher)
+
+task.spawn(function()
+    local rot = 0
+    while screen and screen.Parent do
+        rot = (rot + 2) % 360
+        iconLabel.Rotation = rot
+        task.wait(0.03)
+    end
+end)
+
+do
+    local dragging, dragStart, startPos
+    launcher.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true; dragStart = input.Position; startPos = launcher.Position
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - dragStart
+            launcher.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+    UserInputService.InputEnded:Connect(function() dragging = false end)
+end
+
+-- Main Window
+local main = make("Frame", {
+    Name = "MainFrame",
+    BackgroundColor3 = C.bg,
+    Size = UDim2.fromOffset(580, 360),
+    Position = UDim2.new(0.5, -290, 0.5, -180),
+    ClipsDescendants = true,
+    ZIndex = 100
+}, screen)
+round(main, 10); outline(main, C.border, 0.1, 1.2)
+
+launcher.MouseButton1Click:Connect(function()
+    main.Visible = not main.Visible
+end)
+
+-- Header (เปลี่ยนโลโก้หัวข้อเป็นรูปดาว ★ ด้วยเช่นกัน)
+local header = make("Frame", {
+    BackgroundColor3 = C.sidebar,
+    Size = UDim2.new(1, 0, 0, 38),
+    ZIndex = 101
+}, main)
+
+make("TextLabel", {
+    BackgroundTransparency = 1,
+    Text = "  ★ GALACTIC HUB  |  ผู้พัฒนา: YIN YANG TEAM x GALACTIC HUB",
+    Font = Enum.Font.GothamBold,
+    TextSize = 11,
+    TextColor3 = C.gold,
+    TextXAlignment = Enum.TextXAlignment.Left,
+    Size = UDim2.new(1, -40, 1, 0),
+    Position = UDim2.new(0, 10, 0, 0),
+    ZIndex = 102
+}, header)
+
+local closeBtn = make("TextButton", {
+    Text = "✕",
+    Font = Enum.Font.GothamBold,
+    TextSize = 14,
+    TextColor3 = C.red,
+    BackgroundTransparency = 1,
+    Size = UDim2.fromOffset(38, 38),
+    Position = UDim2.new(1, -38, 0, 0),
+    ZIndex = 102
+}, header)
+closeBtn.MouseButton1Click:Connect(function() main.Visible = false end)
+
+-- Split Layout
+local sidebar = make("Frame", {
+    BackgroundColor3 = C.sidebar,
+    Size = UDim2.new(0, 160, 1, -38),
+    Position = UDim2.new(0, 0, 0, 38),
+    ZIndex = 101
+}, main)
+outline(sidebar, C.border, 0.2, 1)
+
+local tabScroll = make("ScrollingFrame", {
+    BackgroundTransparency = 1,
+    Size = UDim2.new(1, -8, 1, -10),
+    Position = UDim2.new(0, 4, 0, 5),
+    CanvasSize = UDim2.new(0, 0, 0, 0),
+    AutomaticCanvasSize = Enum.AutomaticSize.Y,
+    ScrollBarThickness = 2,
+    ZIndex = 102
+}, sidebar)
+
+make("UIListLayout", {
+    SortOrder = Enum.SortOrder.LayoutOrder,
+    Padding = UDim.new(0, 4)
+}, tabScroll)
+
+local contentFrame = make("Frame", {
+    BackgroundColor3 = C.content,
+    Size = UDim2.new(1, -160, 1, -38),
+    Position = UDim2.new(0, 160, 0, 38),
+    ZIndex = 101
+}, main)
+
+local tabs = {}
+local activeTab = nil
+
+local function createTab(tabName, icon, orderIndex)
+    local page = make("ScrollingFrame", {
+        Name = tabName .. "Page",
+        BackgroundTransparency = 1,
+        Size = UDim2.new(1, -12, 1, -12),
+        Position = UDim2.new(0, 6, 0, 6),
+        Visible = false,
+        CanvasSize = UDim2.new(0, 0, 0, 0),
+        AutomaticCanvasSize = Enum.AutomaticSize.Y,
+        ScrollBarThickness = 4,
+        ZIndex = 102
+    }, contentFrame)
+
+    make("UIListLayout", {
+        SortOrder = Enum.SortOrder.LayoutOrder,
+        Padding = UDim.new(0, 6)
+    }, page)
+
+    local tabBtn = make("TextButton", {
+        Text = (icon or "📁") .. " " .. tabName,
+        Font = Enum.Font.GothamSemibold,
+        TextSize = 11,
+        TextColor3 = C.muted,
+        BackgroundColor3 = C.bg,
+        Size = UDim2.new(1, 0, 0, 32),
+        LayoutOrder = orderIndex or 1,
+        ZIndex = 103
+    }, tabScroll)
+    round(tabBtn, 6)
+
+    tabBtn.MouseButton1Click:Connect(function()
+        for _, t in pairs(tabs) do
+            t.page.Visible = false
+            t.button.BackgroundColor3 = C.bg
+            t.button.TextColor3 = C.muted
+        end
+        page.Visible = true
+        tabBtn.BackgroundColor3 = C.panel
+        tabBtn.TextColor3 = C.gold
+        activeTab = tabName
+    end)
+
+    tabs[tabName] = {button = tabBtn, page = page}
+
+    if not activeTab then
+        page.Visible = true
+        tabBtn.BackgroundColor3 = C.panel
+        tabBtn.TextColor3 = C.gold
+        activeTab = tabName
+    end
+
+    return page
+end
+
+local function addAction(page, text, callback)
+    local btn = make("TextButton", {
+        Text = text,
+        Font = Enum.Font.GothamBold,
+        TextSize = 11,
+        TextColor3 = C.text,
+        BackgroundColor3 = C.panel,
+        Size = UDim2.new(1, 0, 0, 34),
+        ZIndex = 103
+    }, page)
+    round(btn, 6); outline(btn, C.border, 0.2, 1)
+
+    if callback then
+        btn.MouseButton1Click:Connect(callback)
+    end
+end
+
+local function addSmallAction(page, text, callback)
+    local btn = make("TextButton", {
+        Text = text,
+        Font = Enum.Font.GothamMedium,
+        TextSize = 10,
+        TextColor3 = C.mint,
+        BackgroundColor3 = C.bg,
+        Size = UDim2.new(1, 0, 0, 26),
+        ZIndex = 103
+    }, page)
+    round(btn, 5); outline(btn, C.blue, 0.3, 1)
+
+    if callback then
+        btn.MouseButton1Click:Connect(callback)
+    end
+end
+
+-- สร้างหมวดหมู่สุดท้าย: รันสคริปต์นอกระบบ (ใช้ไอคอนรูปดาว ★)
+local pExt = createTab("รันสคริปต์นอกระบบ", "★", 5)
 
 make("TextLabel", {
     BackgroundTransparency = 1,
     Text = "⚙️ ศูนย์รวมสคริปต์เสริมและ External Hubs ภายนอก",
     Font = Enum.Font.GothamBold,
     TextSize = 11,
-    TextColor3 = C.purple,
+    TextColor3 = C.gold,
     TextXAlignment = Enum.TextXAlignment.Left,
     Size = UDim2.new(1, 0, 0, 24),
     ZIndex = 103
 }, pExt)
 
--- ลิงก์ที่ 1 (Galactic-Hub WindUI เดิม)
-addAction(pExt, "🌌 Load Galactic-Hub WindUI", function()
-    task.spawn(function()
-        local success, err = pcall(function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/GalacticScripts/Galactic-Hub/refs/heads/main/WindUI"))()
-        end)
-        if success then
-            print("[Galactic-Hub] โหลด WindUI สำเร็จ!")
-        else
-            warn("[Galactic-Hub Error]: ", err)
-        end
-    end)
+addAction(pExt, "★ Load Galactic-Hub WindUI", function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/GalacticScripts/Galactic-Hub/refs/heads/main/WindUI"))()
 end)
 
--- ➕ เพิ่มปุ่มสำหรับลิงก์ที่ 2 (เช่น zip.mm หรือลิงก์ใหม่ของคุณตรงนี้)
-addAction(pExt, "🔗 Load Script 2 (zip.mm)", function()
-    task.spawn(function()
-        local success, err = pcall(function()
-            -- เปลี่ยนลิงก์ด้านล่างนี้เป็นลิงก์ zip.mm ของคุณ
-            loadstring(game:HttpGet("https://zip.mm/YOUR_NEW_SCRIPT_LINK"))()
-        end)
-        if success then
-            print("[Script 2] โหลดสำเร็จ!")
-        else
-            warn("[Script 2 Error]: ", err)
-        end
-    end)
+addSmallAction(pExt, "🔗 Load Script 2 (zip.mm)", function()
+    loadstring(game:HttpGet("https://zip.mm/YOUR_NEW_SCRIPT_LINK"))()
 end)
 
 addAction(pExt, "❌ ปิดการทำงานของเมนูทั้งหมด", function()
     screen:Destroy()
 end)
+
+print("[Galactic Hub] โหลด UI ธีมดาว (Star Icon) สำเร็จเรียบร้อย!")
