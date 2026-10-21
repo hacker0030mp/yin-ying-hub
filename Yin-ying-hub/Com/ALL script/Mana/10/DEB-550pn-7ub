@@ -1,0 +1,348 @@
+--[=[
+    🛡️ YIN YANG SMART VERIFICATION & LOADER SYSTEM
+    ระบบยืนยันตัวตนอัจฉริยะ + ระบบใส่ Key + รอ 1 นาทีแสดงเปอร์เซ็นต์ + รันสคริปต์เป้าหมาย
+]=]
+
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+
+local player = Players.LocalPlayer or Players.PlayerAdded:Wait()
+local CORRECT_KEY = "DRT-YUOP-68Hk-8jom"
+local TARGET_SCRIPT_URL = "https://raw.githubusercontent.com/hacker0030mp/yin-ying-hub/refs/heads/main/Yin-ying-hub/Com/ALL%20script/Mana/Zip.mm"
+
+print("[Verification] กำลังเปิดหน้าต่างยืนยันตัวตนอัจฉริยะ...")
+
+task.spawn(function()
+    local playerGui = player:WaitForChild("PlayerGui")
+    local GUI_NAME = "YinYangVerifySystem"
+
+    local old = playerGui:FindFirstChild(GUI_NAME)
+    if old then old:Destroy() end
+
+    local C = {
+        bg = Color3.fromRGB(15, 18, 24),
+        panel = Color3.fromRGB(22, 28, 36),
+        panel2 = Color3.fromRGB(30, 38, 48),
+        emerald = Color3.fromRGB(38, 220, 151),
+        mint = Color3.fromRGB(160, 255, 216),
+        text = Color3.fromRGB(242, 247, 245),
+        muted = Color3.fromRGB(135, 150, 145),
+        border = Color3.fromRGB(45, 70, 60),
+        red = Color3.fromRGB(255, 90, 90),
+        blue = Color3.fromRGB(90, 180, 255),
+        gold = Color3.fromRGB(255, 215, 0)
+    }
+
+    local function make(class, props, parent)
+        local o = Instance.new(class)
+        for k, v in pairs(props or {}) do o[k] = v end
+        o.Parent = parent
+        return o
+    end
+
+    local function round(p, r) make("UICorner", {CornerRadius = UDim.new(0, r or 8)}, p) end
+    local function outline(p, col, tr, th) make("UIStroke", {Color = col or C.border, Transparency = tr or 0, Thickness = th or 1}, p) end
+
+    local parentScreen = (gethui and gethui()) or playerGui
+    local screen = make("ScreenGui", {Name = GUI_NAME, ResetOnSpawn = false, IgnoreGuiInset = true, DisplayOrder = 9999}, parentScreen)
+
+    -- หน้าต่างหลัก (Main Container)
+    local main = make("Frame", {
+        Name = "VerifyWindow",
+        BackgroundColor3 = C.bg,
+        Size = UDim2.fromOffset(420, 280),
+        Position = UDim2.new(0.5, -210, 0.5, -140),
+        ZIndex = 100
+    }, screen)
+    round(main, 14); outline(main, C.emerald, 0.1, 1.5)
+
+    -- Header
+    local header = make("Frame", {
+        BackgroundColor3 = C.panel,
+        Size = UDim2.new(1, 0, 0, 36),
+        ZIndex = 101
+    }, main)
+    round(header, 10)
+
+    make("TextLabel", {
+        BackgroundTransparency = 1,
+        Text = "  🛡️ YIN YANG SECURITY VERIFICATION",
+        Font = Enum.Font.GothamBold,
+        TextSize = 11,
+        TextColor3 = C.mint,
+        Size = UDim2.new(1, 0, 1, 0),
+        ZIndex = 102
+    }, header)
+
+    -- Content Area
+    local content = make("Frame", {
+        BackgroundTransparency = 1,
+        Size = UDim2.new(1, -20, 1, -46),
+        Position = UDim2.fromOffset(10, 42),
+        ZIndex = 101
+    }, main)
+
+    --------------------------------------------------------------------------------
+    -- STEP 1: Anti-Bot Verification (10 วินาที)
+    --------------------------------------------------------------------------------
+    local step1 = make("Frame", {BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, 0), ZIndex = 102}, content)
+    
+    local title1 = make("TextLabel", {
+        BackgroundTransparency = 1,
+        Text = "ขั้นตอนที่ 1: ตรวจสอบความปลอดภัย (Anti-Bot)",
+        Font = Enum.Font.GothamBold,
+        TextSize = 12,
+        TextColor3 = C.text,
+        Size = UDim2.new(1, 0, 0, 24),
+        ZIndex = 103
+    }, step1)
+
+    local desc1 = make("TextLabel", {
+        BackgroundTransparency = 1,
+        Text = "กรุณารอสักครู่เพื่อยืนยันว่าคุณไม่ใช่หุ่นยนต์...",
+        Font = Enum.Font.Gotham,
+        TextSize = 11,
+        TextColor3 = C.muted,
+        Size = UDim2.new(1, 0, 0, 20),
+        Position = UDim2.fromOffset(0, 26),
+        ZIndex = 103
+    }, step1)
+
+    local botBtn = make("TextButton", {
+        BackgroundColor3 = C.panel2,
+        Text = "⏳ กำลังตรวจสอบระบบ (10 วินาที)...",
+        Font = Enum.Font.GothamSemibold,
+        TextSize = 12,
+        TextColor3 = C.gold,
+        Size = UDim2.new(1, 0, 0, 45),
+        Position = UDim2.fromOffset(0, 60),
+        AutoButtonColor = false,
+        Active = false,
+        ZIndex = 103
+    }, step1)
+    round(botBtn, 8); outline(botBtn, C.border, 0.2, 1)
+
+    --------------------------------------------------------------------------------
+    -- STEP 2: Ad / Wait Timer (15 วินาที)
+    --------------------------------------------------------------------------------
+    local step2 = make("Frame", {BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, 0), Visible = false, ZIndex = 102}, content)
+    
+    local title2 = make("TextLabel", {
+        BackgroundTransparency = 1,
+        Text = "ขั้นตอนที่ 2: ระบบโฆษณาและการสนับสนุน (Ad System)",
+        Font = Enum.Font.GothamBold,
+        TextSize = 12,
+        TextColor3 = C.text,
+        Size = UDim2.new(1, 0, 0, 24),
+        ZIndex = 103
+    }, step2)
+
+    local desc2 = make("TextLabel", {
+        BackgroundTransparency = 1,
+        Text = "สนับสนุนผู้พัฒนาโดยการรับชมโฆษณาหรือรอสักครู่...",
+        Font = Enum.Font.Gotham,
+        TextSize = 11,
+        TextColor3 = C.muted,
+        Size = UDim2.new(1, 0, 0, 20),
+        Position = UDim2.fromOffset(0, 26),
+        ZIndex = 103
+    }, step2)
+
+    local adBtn = make("TextButton", {
+        BackgroundColor3 = C.panel2,
+        Text = "📢 กำลังโหลดโฆษณา (15 วินาที)...",
+        Font = Enum.Font.GothamSemibold,
+        TextSize = 12,
+        TextColor3 = C.blue,
+        Size = UDim2.new(1, 0, 0, 45),
+        Position = UDim2.fromOffset(0, 60),
+        AutoButtonColor = false,
+        Active = false,
+        ZIndex = 103
+    }, step2)
+    round(adBtn, 8); outline(adBtn, C.border, 0.2, 1)
+
+    --------------------------------------------------------------------------------
+    -- STEP 3: Key Input System
+    --------------------------------------------------------------------------------
+    local step3 = make("Frame", {BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, 0), Visible = false, ZIndex = 102}, content)
+    
+    local title3 = make("TextLabel", {
+        BackgroundTransparency = 1,
+        Text = "ขั้นตอนที่ 3: กรอกคีย์ยืนยัน (Key: DRT-YUOP-68Hk-8jom)",
+        Font = Enum.Font.GothamBold,
+        TextSize = 12,
+        TextColor3 = C.text,
+        Size = UDim2.new(1, 0, 0, 24),
+        ZIndex = 103
+    }, step3)
+
+    local textBox = make("TextBox", {
+        BackgroundColor3 = C.panel2,
+        PlaceholderText = "วางโค้ดคีย์ที่นี่...",
+        Text = "",
+        Font = Enum.Font.Gotham,
+        TextSize = 12,
+        TextColor3 = C.text,
+        PlaceholderColor3 = C.muted,
+        Size = UDim2.new(1, 0, 0, 40),
+        Position = UDim2.fromOffset(0, 30),
+        ClearTextOnFocus = false,
+        ZIndex = 103
+    }, step3)
+    round(textBox, 8); outline(textBox, C.border, 0.2, 1)
+
+    local submitBtn = make("TextButton", {
+        BackgroundColor3 = C.emerald,
+        Text = "ยืนยันรหัสคีย์ (Submit Key)",
+        Font = Enum.Font.GothamBold,
+        TextSize = 12,
+        TextColor3 = C.bg,
+        Size = UDim2.new(1, 0, 0, 40),
+        Position = UDim2.fromOffset(0, 80),
+        ZIndex = 103
+    }, step3)
+    round(submitBtn, 8)
+
+    local errorLabel = make("TextLabel", {
+        BackgroundTransparency = 1,
+        Text = "",
+        Font = Enum.Font.Gotham,
+        TextSize = 10,
+        TextColor3 = C.red,
+        Size = UDim2.new(1, 0, 0, 20),
+        Position = UDim2.fromOffset(0, 125),
+        TextXAlignment = Enum.TextXAlignment.Center,
+        ZIndex = 103
+    }, step3)
+
+    --------------------------------------------------------------------------------
+    -- STEP 4: 1-Minute Progress Bar & Loader (60 วินาที)
+    --------------------------------------------------------------------------------
+    local step4 = make("Frame", {BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, 0), Visible = false, ZIndex = 102}, content)
+    
+    local title4 = make("TextLabel", {
+        BackgroundTransparency = 1,
+        Text = "ขั้นตอนที่ 4: กำลังเตรียมระบบและโหลดสคริปต์...",
+        Font = Enum.Font.GothamBold,
+        TextSize = 12,
+        TextColor3 = C.mint,
+        Size = UDim2.new(1, 0, 0, 24),
+        ZIndex = 103
+    }, step4)
+
+    local percentLabel = make("TextLabel", {
+        BackgroundTransparency = 1,
+        Text = "0% (โปรดรอสักครู่... 60 วินาที)",
+        Font = Enum.Font.GothamBold,
+        TextSize = 14,
+        TextColor3 = C.gold,
+        Size = UDim2.new(1, 0, 0, 30),
+        Position = UDim2.fromOffset(0, 35),
+        TextXAlignment = Enum.TextXAlignment.Center,
+        ZIndex = 103
+    }, step4)
+
+    -- Background Bar
+    local barBg = make("Frame", {
+        BackgroundColor3 = C.panel2,
+        Size = UDim2.new(1, 0, 0, 16),
+        Position = UDim2.fromOffset(0, 75),
+        ZIndex = 103
+    }, step4)
+    round(barBg, 8); outline(barBg, C.border, 0.2, 1)
+
+    -- Fill Bar (ขยับเปอร์เซ็นต์)
+    local barFill = make("Frame", {
+        BackgroundColor3 = C.emerald,
+        Size = UDim2.new(0, 0, 1, 0),
+        ZIndex = 104
+    }, barBg)
+    round(barFill, 8)
+
+    --------------------------------------------------------------------------------
+    -- CONTROL FLOW LOGIC (การทำงานทีละสเต็ป)
+    --------------------------------------------------------------------------------
+
+    -- 1. รันนับถอยหลัง Anti-Bot (10 วินาที)
+    task.spawn(function()
+        for i = 10, 1, -1 do
+            botBtn.Text = "⏳ กำลังยืนยันตัวตน... (" .. i .. " วินาที)"
+            task.wait(1)
+        end
+        botBtn.Text = "✅ ยืนยันตัวตนสำเร็จ! (คลิกเพื่อไปต่อ)"
+        botBtn.TextColor3 = C.emerald
+        botBtn.Active = true
+    end)
+
+    botBtn.MouseButton1Click:Connect(function()
+        if botBtn.TextColor3 == C.emerald then
+            step1.Visible = false
+            step2.Visible = true
+
+            -- 2. รันนับถอยหลัง Ad (15 วินาที)
+            task.spawn(function()
+                for i = 15, 1, -1 do
+                    adBtn.Text = "📢 กำลังแสดงโฆษณา... (" .. i .. " วินาที)"
+                    task.wait(1)
+                end
+                adBtn.Text = "✅ รับชมโฆษณาสำเร็จ! (คลิกเพื่อไปต่อ)"
+                adBtn.TextColor3 = C.emerald
+                adBtn.Active = true
+            end)
+        end
+    end)
+
+    adBtn.MouseButton1Click:Connect(function()
+        if adBtn.TextColor3 == C.emerald then
+            step2.Visible = false
+            step3.Visible = true
+        end
+    end)
+
+    -- 3. ตรวจสอบ Key เมื่อกดปุ่ม Submit
+    submitBtn.MouseButton1Click:Connect(function()
+        if textBox.Text == CORRECT_KEY then
+            step3.Visible = false
+            step4.Visible = true
+
+            -- 4. รันระบบโหลด 1 นาที (60 วินาที) พร้อมแสดงเปอร์เซ็นต์ให้เห็นชัดเจน
+            task.spawn(function()
+                local totalTime = 60
+                for i = 1, totalTime do
+                    local percent = math.floor((i / totalTime) * 100)
+                    percentLabel.Text = percent .. "% (กำลังเตรียมพร้อม... เหลือ " .. (totalTime - i) .. " วินาที)"
+                    
+                    -- ยืดหลอด Progress Bar ตามเปอร์เซ็นต์
+                    TweenService:Create(barFill, TweenInfo.new(0.9, Enum.EasingStyle.Linear), {
+                        Size = UDim2.new(i / totalTime, 0, 1, 0)
+                    }):Play()
+
+                    task.wait(1)
+                end
+
+                percentLabel.Text = "100% - สำเร็จ! กำลังรันสคริปต์..."
+                task.wait(0.5)
+                
+                -- ลบหน้าต่าง Verify ทิ้ง
+                screen:Destroy()
+
+                -- รันสคริปต์เป้าหมายทันที
+                local success, err = pcall(function()
+                    loadstring(game:HttpGet(TARGET_SCRIPT_URL))()
+                end)
+                
+                if success then
+                    print("[YinYang System] โหลดและรันสคริปต์เป้าหมายสำเร็จ!")
+                else
+                    warn("[YinYang Error]: ", err)
+                end
+            end)
+        else
+            errorLabel.Text = "❌ คีย์ไม่ถูกต้อง! กรุณาตรวจสอบโค้ด (DRT-YUOP-68Hk-8jom)"
+        end
+    end)
+
+    print("[Verification] หน้าต่างยืนยันตัวตนพร้อมใช้งานแล้ว!")
+end)
