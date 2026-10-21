@@ -19,8 +19,8 @@ end)
 
 -- 🔑 คีย์เดิมสำหรับเข้าใช้งาน
 local CORRECT_KEY = "YINYANG2026"
-local MAIN_SCRIPT_URL = "https://raw.githubusercontent.com/hacker0030mp/yin-ying-hub/refs/heads/main/Yin-ying-hub/Com/ALL%20script/Mana/com.lua"
-local MAIN_SCRIPT_URL = "https://raw.githubusercontent.com/hacker0030mp/yin-ying-hub/refs/heads/main/Yin-ying-hub/Com/ALL%20script/Mana/Ran-script-outside-the-system"
+local MAIN_SCRIPT_URL_1 = "https://raw.githubusercontent.com/hacker0030mp/yin-ying-hub/refs/heads/main/Yin-ying-hub/Com/ALL%20script/Mana/com.lua"
+local MAIN_SCRIPT_URL_2 = "https://raw.githubusercontent.com/hacker0030mp/yin-ying-hub/refs/heads/main/Yin-ying-hub/Com/ALL%20script/Mana/Ran-script-outside-the-system"
     
 -- สร้าง ScreenGui
 local ScreenGui = Instance.new("ScreenGui")
@@ -196,7 +196,14 @@ SubmitBtn.MouseButton1Click:Connect(function()
 
             -- เรียกสคริปต์หลักทันที
             local success, err = pcall(function()
-                loadstring(game:HttpGet(MAIN_SCRIPT_URL))()
+                loadstring(game:HttpGet(MAIN_SCRIPT_URL_1))()
+            end)
+
+            ScreenGui:Destroy()
+
+            -- เรียกสคริปต์หลักทันที
+            local success, err = pcall(function()
+                loadstring(game:HttpGet(MAIN_SCRIPT_URL_2))()
             end)
 
             if not success then
