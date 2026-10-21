@@ -1,5 +1,6 @@
 --[=[
-    ☯ YIN YANG EVENT & UI SYSTEM — 50+ FEATURES ULTIMATE EDITION (WITH OVERLAY SUB-WINDOWS)
+    ☯ YIN YANG EVENT & UI SYSTEM — ULTIMATE 50+ FEATURES & OVERLAY SUB-WINDOWS EDITION
+    วิธีใช้งาน: รองรับการรันผ่าน Script Executor บนมือถือ หรือใน Roblox Studio
 ]=]
 
 local Players = game:GetService("Players")
@@ -12,14 +13,14 @@ local Lighting = game:GetService("Lighting")
 local player = Players.LocalPlayer or Players.PlayerAdded:Wait()
 local isStudio = RunService:IsStudio()
 
-print("[YinYang System] กำลังเริ่มต้นระบบ 50+ ฟังก์ชัน พร้อมหน้าต่างทับซ้อน...")
+print("[YinYang System] กำลังเริ่มต้นระบบหลัก 50+ ฟังก์ชัน พร้อมหน้าต่างทับซ้อน...")
 
 --------------------------------------------------------------------------------
--- 1. Optimized UI Client (Mobile Friendly + 50+ Features)
+-- 1. Main UI Client System
 --------------------------------------------------------------------------------
 task.spawn(function()
     local playerGui = player:WaitForChild("PlayerGui")
-    local GUI_NAME = "YinYangUI_50PlusEdition"
+    local GUI_NAME = "YinYangUI_UltimateSystem"
 
     local old = playerGui:FindFirstChild(GUI_NAME)
     if old then old:Destroy() end
@@ -86,7 +87,7 @@ task.spawn(function()
         end
     end)
 
-    -- ลากปุ่ม Launcher
+    -- ระบบลากปุ่ม Launcher บนมือถือ
     do
         local dragging, dragStart, startPos
         launcher.InputBegan:Connect(function(input)
@@ -131,7 +132,7 @@ task.spawn(function()
     
     local title = make("TextLabel", {
         BackgroundTransparency = 1,
-        Text = "  ☯ YIN YANG HUB — 50+ FEATURES EDITION",
+        Text = "  ☯ YIN YANG HUB — 50+ FEATURES & OVERLAYS",
         Font = Enum.Font.GothamBold,
         TextSize = 11,
         TextColor3 = C.mint,
@@ -154,12 +155,12 @@ task.spawn(function()
         windowVisible = false
     end)
 
-    -- Scrolling Frame สำหรับรายการฟังก์ชันทั้งหมด (ปรับความสูง Canvas อัตโนมัติรองรับ 50 รายการ)
+    -- Scrolling Frame สำหรับรายการฟังก์ชันทั้งหมด (Canvas รองรับ 50+ ปุ่ม)
     local scroll = make("ScrollingFrame", {
         BackgroundTransparency = 1,
         Size = UDim2.new(1, -12, 1, -46),
         Position = UDim2.fromOffset(6, 42),
-        CanvasSize = UDim2.new(0, 0, 0, 1150), -- รองรับ 50+ ปุ่ม
+        CanvasSize = UDim2.new(0, 0, 0, 1150),
         ScrollBarThickness = 4,
         ZIndex = 91
     }, main)
@@ -169,7 +170,7 @@ task.spawn(function()
         CellPadding = UDim2.fromOffset(6, 6)
     }, scroll)
 
-    -- ฟังก์ชันสร้างหน้าต่างทับซ้อน (Overlay Sub-Window)
+    -- ฟังก์ชันสร้างหน้าต่างทับซ้อนย่อย (Sub-Window Overlay)
     local function createSubWindow(windowTitle, contentBuilder)
         local overlay = make("Frame", {
             Name = "SubWindowOverlay",
@@ -221,7 +222,7 @@ task.spawn(function()
 
         contentBuilder(subContent)
 
-        -- ลากหน้าต่างย่อยได้
+        -- ระบบลากหน้าต่างทับซ้อนย่อย
         do
             local dragging, dragStart, startPos
             subHeader.InputBegan:Connect(function(input)
@@ -241,7 +242,7 @@ task.spawn(function()
         return overlay
     end
 
-    -- ฟังก์ชันสร้างปุ่มหลัก พร้อมปุ่มบวก [+] ด้านหน้า
+    -- ฟังก์ชันสร้างปุ่มหลัก พร้อมปุ่ม [+] ด้านหน้าเพื่อเปิดหน้าต่างทับซ้อน
     local function addFeatureWithSubWindow(name, mainCallback, subTitle, subBuilder)
         local container = make("Frame", {
             BackgroundColor3 = C.panel2,
@@ -250,6 +251,7 @@ task.spawn(function()
         }, scroll)
         round(container, 6); outline(container, C.border, 0.2, 1)
 
+        -- ปุ่ม [+] ด้านหน้า
         local plusBtn = make("TextButton", {
             Text = "+",
             Font = Enum.Font.GothamBold,
@@ -267,6 +269,7 @@ task.spawn(function()
             subWin.Visible = not subWin.Visible
         end)
 
+        -- ปุ่มฟังก์ชันหลัก
         local mainBtn = make("TextButton", {
             Text = name,
             Font = Enum.Font.GothamSemibold,
@@ -285,7 +288,7 @@ task.spawn(function()
     end
 
     --------------------------------------------------------------------------------
-    -- รายชื่อฟังก์ชันทั้งหมด (กว่า 50+ รายการ พร้อมปุ่ม [+] และหน้าต่างทับซ้อน)
+    -- รายชื่อฟังก์ชันทั้งหมดกว่า 50+ รายการ พร้อมหน้าต่างทับซ้อนย่อย
     --------------------------------------------------------------------------------
 
     local featuresList = {
@@ -323,5 +326,4 @@ task.spawn(function()
         {"❄️ Ice Aura", function() print("Ice Aura On") end, "Ice Aura", function(p) make("TextLabel", {BackgroundTransparency = 1, Text = "เปิดออร่าน้ำแข็งรอบตัว", TextSize = 11, TextColor3 = C.text, Size = UDim2.new(1,0,1,0)}, p) end},
         {"⚡ Lightning Aura", function() print("Lightning Aura On") end, "Lightning", function(p) make("TextLabel", {BackgroundTransparency = 1, Text = "เปิดออร่าสายฟ้าฟาด", TextSize = 11, TextColor3 = C.text, Size = UDim2.new(1,0,1,0)}, p) end},
         {"💨 Dash Move", function() print("Dashed") end, "Dash", function(p) make("TextLabel", {BackgroundTransparency = 1, Text = "พุ่งตัวไปข้างหน้าอย่างรวดเร็ว", TextSize = 11, TextColor3 = C.text, Size = UDim2.new(1,0,1,0)}, p) end},
-        {"🧗 Infinite Jump", function() print("Infinite Jump On") end, "Inf Jump", function(p) make("TextLabel", {BackgroundTransparency = 1, Text = "กระโดดกลางอากาศไม่จำกัด", TextSize = 11, TextColor3 = C.text, Size = UDim2.new(1,0,1,0)}, p) end},
-        {"📷 Freecam", function() print("Freecam On") end, "Freecam", function(p) ma
+        {"🧗 Infinite Jump", function() print("Infinite Jump On") end, "Inf Jump", function(p) make("TextLabel", {BackgroundTransparency = 1, Text = "กระโดดกลางอากาศไม่จำกัด", TextSize = 11, TextColor3 = C.text, Size = UDim2.new(1,
