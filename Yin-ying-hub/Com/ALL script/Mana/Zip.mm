@@ -20,7 +20,9 @@ end)
 -- 🔑 คีย์สำหรับเข้าใช้งาน (ตั้งค่าได้ที่นี่)
 local CORRECT_KEY = "YINYANG2026"
 local MAIN_SCRIPT_URL = "https://raw.githubusercontent.com/hacker0030mp/yin-ying-hub/refs/heads/main/Yin-ying-hub/Com/ALL%20script/Mana/com.lua"
-local loading_URL = "loadstring(game:HttpGet("https://raw.githubusercontent.com/hacker0030mp/yin-ying-hub/refs/heads/main/Yin-ying-hub/Com/ALL%20script/Mana/com.lua"))()"
+
+-- แก้ไขไวยากรณ์ที่ผิดพลาด (Escape String หรือใช้ Single Quotes)
+local loading_URL = 'loadstring(game:HttpGet("https://raw.githubusercontent.com/hacker0030mp/yin-ying-hub/refs/heads/main/Yin-ying-hub/Com/ALL%20script/Mana/com.lua"))()'
     
 -- สร้าง ScreenGui
 local ScreenGui = Instance.new("ScreenGui")
@@ -214,3 +216,4 @@ SubmitBtn.MouseButton1Click:Connect(function()
         StatusLabel.TextColor3 = Color3.fromRGB(239, 68, 68)
     end
 end)
+    
