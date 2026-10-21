@@ -147,7 +147,7 @@ task.spawn(function()
                 screen:Destroy()
 
                 local success, err = pcall(function()
-                    loadstring(game:HttpGet("loadstring(game:HttpGet("https://raw.githubusercontent.com/hacker0030mp/yin-ying-hub/refs/heads/main/Yin-ying-hub/Com/ALL%20script/Mana/Zip.mm"))()
+                    loadstring(game:HttpGet(TARGET_SCRIPT_URL))()
                 end)
                 
                 if not success then
