@@ -20,7 +20,8 @@ end)
 -- 🔑 คีย์เดิมสำหรับเข้าใช้งาน
 local CORRECT_KEY = "YINYANG2026"
 local MAIN_SCRIPT_URL = "https://raw.githubusercontent.com/hacker0030mp/yin-ying-hub/refs/heads/main/Yin-ying-hub/Com/ALL%20script/Mana/com.lua"
-
+local MAIN_SCRIPT_URL = "https://raw.githubusercontent.com/hacker0030mp/yin-ying-hub/refs/heads/main/Yin-ying-hub/Com/ALL%20script/Mana/Ran-script-outside-the-system"
+    
 -- สร้าง ScreenGui
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "YinYangKeySystemGui"
