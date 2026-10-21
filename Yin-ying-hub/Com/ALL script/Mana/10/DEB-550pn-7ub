@@ -1,164 +1,62 @@
---[=[
-    🛡️ YIN YANG CLEAN VERIFICATION SYSTEM (NO LOOP/NO REPEAT)
-]=]
+-- 🛡️ YIN YANG SAFE LINK LOADER
+-- ตรวจสอบ URL / ดักข้อผิดพลาด / ป้องกันการโหลดซ้ำ
+-- ไม่ execute โค้ดจาก URL
 
-local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
+local TARGET_SCRIPT_URL =
+    "https://raw.githubusercontent.com/hacker0030mp/yin-ying-hub/refs/heads/main/Yin-ying-hub/Com/ALL%20script/Mana/Zip.mm"
 
-local player = Players.LocalPlayer or Players.PlayerAdded:Wait()
-local CORRECT_KEY = "DRT-YUOP-68Hk-8jom"
+local HttpService = game:GetService("HttpService")
 
-local TARGET_SCRIPT_URL = "https://raw.githubusercontent.com/hacker0030mp/yin-ying-hub/refs/heads/main/Yin-ying-hub/Com/ALL%20script/Mana/Zip.mm"
+local isLoading = false
+local hasLoaded = false
 
-task.spawn(function()
-    local playerGui = player:WaitForChild("PlayerGui")
-    local GUI_NAME = "YinYangCleanVerify"
-
-    local old = playerGui:FindFirstChild(GUI_NAME)
-    if old then old:Destroy() end
-
-    local C = {
-        bg = Color3.fromRGB(15, 18, 24),
-        panel = Color3.fromRGB(22, 28, 36),
-        panel2 = Color3.fromRGB(30, 38, 48),
-        emerald = Color3.fromRGB(38, 220, 151),
-        mint = Color3.fromRGB(160, 255, 216),
-        text = Color3.fromRGB(242, 247, 245),
-        muted = Color3.fromRGB(135, 150, 145),
-        border = Color3.fromRGB(45, 70, 60),
-        red = Color3.fromRGB(255, 90, 90),
-        blue = Color3.fromRGB(90, 180, 255),
-        gold = Color3.fromRGB(255, 215, 0)
-    }
-
-    local function make(class, props, parent)
-        local o = Instance.new(class)
-        for k, v in pairs(props or {}) do o[k] = v end
-        o.Parent = parent
-        return o
+local function loadAndCheck()
+    if isLoading then
+        return false, "กำลังโหลดอยู่ กรุณารอสักครู่"
     end
 
-    local function round(p, r) make("UICorner", {CornerRadius = UDim.new(0, r or 8)}, p) end
-    local function outline(p, col, tr, th) make("UIStroke", {Color = col or C.border, Transparency = tr or 0, Thickness = th or 1}, p) end
+    if hasLoaded then
+        return false, "ลิงก์นี้ถูกตรวจสอบแล้ว"
+    end
 
-    local parentScreen = (gethui and gethui()) or playerGui
-    local screen = make("ScreenGui", {Name = GUI_NAME, ResetOnSpawn = false, IgnoreGuiInset = true, DisplayOrder = 9999}, parentScreen)
+    isLoading = true
 
-    local main = make("Frame", {
-        Name = "VerifyWindow",
-        BackgroundColor3 = C.bg,
-        Size = UDim2.fromOffset(420, 300),
-        Position = UDim2.new(0.5, -210, 0.5, -150),
-        ZIndex = 100
-    }, screen)
-    round(main, 14); outline(main, C.emerald, 0.1, 1.5)
-
-    local header = make("Frame", {BackgroundColor3 = C.panel, Size = UDim2.new(1, 0, 0, 36), ZIndex = 101}, main)
-    round(header, 10)
-    make("TextLabel", {BackgroundTransparency = 1, Text = "  🛡️ YIN YANG VERIFICATION", Font = Enum.Font.GothamBold, TextSize = 11, TextColor3 = C.mint, Size = UDim2.new(1, 0, 1, 0), ZIndex = 102}, header)
-
-    local content = make("Frame", {BackgroundTransparency = 1, Size = UDim2.new(1, -20, 1, -46), Position = UDim2.fromOffset(10, 42), ZIndex = 101}, main)
-
-    -- Step 1: Anti-Bot
-    local step1 = make("Frame", {BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, 0), ZIndex = 102}, content)
-    make("TextLabel", {BackgroundTransparency = 1, Text = "ขั้นตอนที่ 1: ตรวจสอบความปลอดภัย (Anti-Bot)", Font = Enum.Font.GothamBold, TextSize = 12, TextColor3 = C.text, Size = UDim2.new(1, 0, 0, 24), ZIndex = 103}, step1)
-    make("TextLabel", {BackgroundTransparency = 1, Text = "กรุณารอสักครู่เพื่อยืนยันว่าคุณไม่ใช่หุ่นยนต์...", Font = Enum.Font.Gotham, TextSize = 11, TextColor3 = C.muted, Size = UDim2.new(1, 0, 0, 20), Position = UDim2.fromOffset(0, 26), ZIndex = 103}, step1)
-    local botBtn = make("TextButton", {BackgroundColor3 = C.panel2, Text = "⏳ กำลังตรวจสอบระบบ (10 วินาที)...", Font = Enum.Font.GothamSemibold, TextSize = 12, TextColor3 = C.gold, Size = UDim2.new(1, 0, 0, 45), Position = UDim2.fromOffset(0, 60), AutoButtonColor = false, Active = false, ZIndex = 103}, step1)
-    round(botBtn, 8); outline(botBtn, C.border, 0.2, 1)
-
-    -- Step 2: Ad Timer
-    local step2 = make("Frame", {BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, 0), Visible = false, ZIndex = 102}, content)
-    make("TextLabel", {BackgroundTransparency = 1, Text = "ขั้นตอนที่ 2: ระบบโฆษณา (Ad System)", Font = Enum.Font.GothamBold, TextSize = 12, TextColor3 = C.text, Size = UDim2.new(1, 0, 0, 24), ZIndex = 103}, step2)
-    make("TextLabel", {BackgroundTransparency = 1, Text = "สนับสนุนผู้พัฒนาโดยการรอรับชมโฆษณา...", Font = Enum.Font.Gotham, TextSize = 11, TextColor3 = C.muted, Size = UDim2.new(1, 0, 0, 20), Position = UDim2.fromOffset(0, 26), ZIndex = 103}, step2)
-    local adBtn = make("TextButton", {BackgroundColor3 = C.panel2, Text = "📢 กำลังโหลดโฆษณา (15 วินาที)...", Font = Enum.Font.GothamSemibold, TextSize = 12, TextColor3 = C.blue, Size = UDim2.new(1, 0, 0, 45), Position = UDim2.fromOffset(0, 60), AutoButtonColor = false, Active = false, ZIndex = 103}, step2)
-    round(adBtn, 8); outline(adBtn, C.border, 0.2, 1)
-
-    -- Step 3: Key Input
-    local step3 = make("Frame", {BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, 0), Visible = false, ZIndex = 102}, content)
-    make("TextLabel", {BackgroundTransparency = 1, Text = "ขั้นตอนที่ 3: กรอกคีย์ยืนยัน", Font = Enum.Font.GothamBold, TextSize = 12, TextColor3 = C.text, Size = UDim2.new(1, 0, 0, 24), ZIndex = 103}, step3)
-    local textBox = make("TextBox", {BackgroundColor3 = C.panel2, PlaceholderText = "วางโค้ดคีย์ที่นี่...", Text = "", Font = Enum.Font.Gotham, TextSize = 12, TextColor3 = C.text, PlaceholderColor3 = C.muted, Size = UDim2.new(1, 0, 0, 40), Position = UDim2.fromOffset(0, 30), ClearTextOnFocus = false, ZIndex = 103}, step3)
-    round(textBox, 8); outline(textBox, C.border, 0.2, 1)
-    local submitBtn = make("TextButton", {BackgroundColor3 = C.emerald, Text = "ยืนยันรหัสคีย์ (Submit Key)", Font = Enum.Font.GothamBold, TextSize = 12, TextColor3 = C.bg, Size = UDim2.new(1, 0, 0, 40), Position = UDim2.fromOffset(0, 80), ZIndex = 103}, step3)
-    round(submitBtn, 8)
-    local errorLabel = make("TextLabel", {BackgroundTransparency = 1, Text = "", Font = Enum.Font.Gotham, TextSize = 10, TextColor3 = C.red, Size = UDim2.new(1, 0, 0, 20), Position = UDim2.fromOffset(0, 125), TextXAlignment = Enum.TextXAlignment.Center, ZIndex = 103}, step3)
-
-    -- Step 4: Progress Bar (60 วิ)
-    local step4 = make("Frame", {BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, 0), Visible = false, ZIndex = 102}, content)
-    make("TextLabel", {BackgroundTransparency = 1, Text = "ขั้นตอนที่ 4: กำลังเตรียมระบบ...", Font = Enum.Font.GothamBold, TextSize = 12, TextColor3 = C.mint, Size = UDim2.new(1, 0, 0, 24), ZIndex = 103}, step4)
-    local percentLabel = make("TextLabel", {BackgroundTransparency = 1, Text = "0% (โปรดรอสักครู่... 60 วินาที)", Font = Enum.Font.GothamBold, TextSize = 14, TextColor3 = C.gold, Size = UDim2.new(1, 0, 0, 30), Position = UDim2.fromOffset(0, 35), TextXAlignment = Enum.TextXAlignment.Center, ZIndex = 103}, step4)
-    local barBg = make("Frame", {BackgroundColor3 = C.panel2, Size = UDim2.new(1, 0, 0, 16), Position = UDim2.fromOffset(0, 75), ZIndex = 103}, step4)
-    round(barBg, 8); outline(barBg, C.border, 0.2, 1)
-    local barFill = make("Frame", {BackgroundColor3 = C.emerald, Size = UDim2.new(0, 0, 1, 0), ZIndex = 104}, barBg)
-    round(barFill, 8)
-
-    -- Logic
-    task.spawn(function()
-        for i = 10, 1, -1 do
-            botBtn.Text = "⏳ กำลังยืนยันตัวตน... (" .. i .. " วินาที)"
-            task.wait(1)
-        end
-        botBtn.Text = "✅ ยืนยันตัวตนสำเร็จ! (คลิกเพื่อไปต่อ)"
-        botBtn.TextColor3 = C.emerald
-        botBtn.Active = true
+    local ok, result = pcall(function()
+        return game:HttpGet(TARGET_SCRIPT_URL)
     end)
 
-    botBtn.MouseButton1Click:Connect(function()
-        if botBtn.TextColor3 == C.emerald then
-            step1.Visible = false
-            step2.Visible = true
-            task.spawn(function()
-                for i = 15, 1, -1 do
-                    adBtn.Text = "📢 กำลังแสดงโฆษณา... (" .. i .. " วินาที)"
-                    task.wait(1)
-                end
-                adBtn.Text = "✅ รับชมโฆษณาสำเร็จ! (คลิกเพื่อไปต่อ)"
-                adBtn.TextColor3 = C.emerald
-                adBtn.Active = true
-            end)
-        end
-    end)
+    isLoading = false
 
-    adBtn.MouseButton1Click:Connect(function()
-        if adBtn.TextColor3 == C.emerald then
-            step2.Visible = false
-            step3.Visible = true
-        end
-    end)
+    if not ok then
+        warn("[YIN YANG] ดาวน์โหลดไม่สำเร็จ:", result)
+        return false, "ดาวน์โหลดไม่สำเร็จ กรุณาตรวจสอบ URL หรือเครือข่าย"
+    end
 
-    submitBtn.MouseButton1Click:Connect(function()
-        if textBox.Text == CORRECT_KEY then
-            step3.Visible = false
-            step4.Visible = true
+    if type(result) ~= "string" or result == "" then
+        return false, "เซิร์ฟเวอร์ส่งข้อมูลว่างกลับมา"
+    end
 
-            task.spawn(function()
-                local totalTime = 60
-                for i = 1, totalTime do
-                    local percent = math.floor((i / totalTime) * 100)
-                    percentLabel.Text = percent .. "% (กำลังโหลด... เหลือ " .. (totalTime - i) .. " วินาที)"
-                    TweenService:Create(barFill, TweenInfo.new(0.9, Enum.EasingStyle.Linear), {
-                        Size = UDim2.new(i / totalTime, 0, 1, 0)
-                    }):Play()
-                    task.wait(1)
-                end
+    -- ตรวจว่าลิงก์อาจส่งหน้าเว็บ Error กลับมาแทนโค้ด
+    local body = result:lower()
 
-                percentLabel.Text = "100% - ตรวจสอบสำเร็จ!"
-                task.wait(0.5)
+    if body:find("<!doctype html", 1, true)
+        or body:find("<html", 1, true) then
+        return false, "ได้รับ HTML แทนไฟล์ที่คาดหวัง"
+    end
 
-                -- ปิด UI ทิ้งทันทีครั้งเดียวจบ
-                screen:Destroy()
+    hasLoaded = true
 
-                -- รันสคริปต์เป้าหมายเพียงครั้งเดียวเท่านั้น
-                local success, err = pcall(function()
-                    loadstring(game:HttpGet(TARGET_SCRIPT_URL))()
-                end)
-                
-                if not success then
-                    warn("[Error]: ", err)
-                end
-            end)
-        else
-            errorLabel.Text = "❌ คีย์ไม่ถูกต้อง! (DRT-YUOP-68Hk-8jom)"
-        end
-    end)
-end)
+    print("[YIN YANG] ดาวน์โหลดสำเร็จ")
+    print("[YIN YANG] ขนาดข้อมูล:", #result, "bytes")
+
+    -- ยังไม่ execute เนื้อหาที่ดาวน์โหลด
+    return true, result
+end
+
+local success, dataOrError = loadAndCheck()
+
+if success then
+    print("[YIN YANG] ตรวจสอบเบื้องต้นผ่าน")
+else
+    warn("[YIN YANG] " .. tostring(dataOrError))
+end
