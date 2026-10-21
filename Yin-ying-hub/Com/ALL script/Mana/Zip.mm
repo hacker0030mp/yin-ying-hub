@@ -1,6 +1,6 @@
 -- =========================================================================
 -- ☯️ YIN-YANG HUB | SIMPLE KEY SYSTEM & 10-SECOND LOADING ☯️
--- ระบบ Key แบบง่าย + แถบ Loading 10 วินาที รันโค้ดหลักทันทีเมื่อเสร็จ
+-- ระบบ Key คีย์เดิม: YINYANG2026 (กดคัดลอกแล้ววางให้อัตโนมัติ)
 -- =========================================================================
 
 local Players = game:GetService("Players")
@@ -17,13 +17,10 @@ pcall(function()
     end
 end)
 
--- 🔑 คีย์สำหรับเข้าใช้งาน (ตั้งค่าได้ที่นี่)
+-- 🔑 คีย์เดิมสำหรับเข้าใช้งาน
 local CORRECT_KEY = "YINYANG2026"
 local MAIN_SCRIPT_URL = "https://raw.githubusercontent.com/hacker0030mp/yin-ying-hub/refs/heads/main/Yin-ying-hub/Com/ALL%20script/Mana/com.lua"
 
--- แก้ไขไวยากรณ์ที่ผิดพลาด (Escape String หรือใช้ Single Quotes)
-local loading_URL = 'loadstring(game:HttpGet("https://raw.githubusercontent.com/hacker0030mp/yin-ying-hub/refs/heads/main/Yin-ying-hub/Com/ALL%20script/Mana/com.lua"))()'
-    
 -- สร้าง ScreenGui
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "YinYangKeySystemGui"
@@ -61,7 +58,7 @@ KeyInput.Size = UDim2.new(1, -40, 0, 40)
 KeyInput.Position = UDim2.new(0, 20, 0, 50)
 KeyInput.BackgroundColor3 = Color3.fromRGB(8, 14, 12)
 KeyInput.Font = Enum.Font.Gotham
-KeyInput.PlaceholderText = "ใส่ Key ที่นี่... (คีย์ฟรี: " .. CORRECT_KEY .. ")"
+KeyInput.PlaceholderText = "กดปุ่มคัดลอกด้านล่างเพื่อวาง Key..."
 KeyInput.Text = ""
 KeyInput.TextColor3 = Color3.fromRGB(236, 253, 245)
 KeyInput.TextSize = 12
@@ -70,13 +67,13 @@ KeyInput.Parent = KeyFrame
 Instance.new("UICorner", KeyInput).CornerRadius = UDim.new(0, 8)
 Instance.new("UIStroke", KeyInput).Color = Color3.fromRGB(30, 70, 55)
 
--- ปุ่ม Copy Key
+-- ปุ่ม Copy Key (คัดลอกคีย์เดิมและวางลงช่องให้อัตโนมัติ)
 local CopyKeyBtn = Instance.new("TextButton")
 CopyKeyBtn.Size = UDim2.new(0.46, -5, 0, 38)
 CopyKeyBtn.Position = UDim2.new(0, 20, 0, 100)
 CopyKeyBtn.BackgroundColor3 = Color3.fromRGB(20, 50, 40)
 CopyKeyBtn.Font = Enum.Font.GothamBold
-CopyKeyBtn.Text = "📋 คัดลอก Key"
+CopyKeyBtn.Text = "📋 คัดลอก & วาง Key"
 CopyKeyBtn.TextColor3 = Color3.fromRGB(110, 231, 183)
 CopyKeyBtn.TextSize = 12
 CopyKeyBtn.Parent = KeyFrame
@@ -100,7 +97,7 @@ StatusLabel.Size = UDim2.new(1, -40, 0, 30)
 StatusLabel.Position = UDim2.new(0, 20, 0, 150)
 StatusLabel.BackgroundTransparency = 1
 StatusLabel.Font = Enum.Font.Gotham
-StatusLabel.Text = "กรุณากรอก Key หรือกดคัดลอก Key ด้านบน"
+StatusLabel.Text = "กดปุ่มคัดลอกเพื่อวาง Key อัตโนมัติ"
 StatusLabel.TextColor3 = Color3.fromRGB(150, 180, 170)
 StatusLabel.TextSize = 11
 StatusLabel.Parent = KeyFrame
@@ -127,7 +124,7 @@ local LoadTitle = Instance.new("TextLabel")
 LoadTitle.Size = UDim2.new(1, 0, 0, 40)
 LoadTitle.BackgroundTransparency = 1
 LoadTitle.Font = Enum.Font.GothamBold
-LoadTitle.Text = "☯️กำลังโหลดระบบ... (10 วินาที)"
+LoadTitle.Text = "☯️ กำลังโหลดระบบ... (10 วินาที)"
 LoadTitle.TextColor3 = Color3.fromRGB(52, 211, 153)
 LoadTitle.TextSize = 14
 LoadTitle.Parent = LoadingFrame
@@ -160,34 +157,30 @@ PercentText.Parent = LoadingFrame
 -- ⚡ ฟังก์ชันการทำงาน
 -- =========================================================================
 
--- กดคัดลอก Key
+-- กดคัดลอก Key เดิม และ วางลงช่องให้อัตโนมัติทันที
 CopyKeyBtn.MouseButton1Click:Connect(function()
-    KeyInput.Text = CORRECT_KEY
     if setclipboard then
         setclipboard(CORRECT_KEY)
-        StatusLabel.Text = "✅ คัดลอก Key ลง Clipboard และใส่ให้อัตโนมัติแล้ว!"
-        StatusLabel.TextColor3 = Color3.fromRGB(52, 211, 153)
-    else
-        StatusLabel.Text = "✅ ใส่ Key ให้อัตโนมัติเรียบร้อยแล้ว!"
-        StatusLabel.TextColor3 = Color3.fromRGB(52, 211, 153)
     end
+    
+    KeyInput.Text = CORRECT_KEY
+    
+    StatusLabel.Text = "📋 คัดลอกและวาง Key สำเร็จแล้ว!"
+    StatusLabel.TextColor3 = Color3.fromRGB(52, 211, 153)
 end)
 
 -- กดตกลงยืนยัน Key
 SubmitBtn.MouseButton1Click:Connect(function()
     if KeyInput.Text == CORRECT_KEY then
-        -- ปิดหน้า Key และเปิดหน้า Loading 10 วินาที
         KeyFrame.Visible = false
         LoadingFrame.Visible = true
 
-        -- วนลูปนับถอยหลัง 10 วินาที
         task.spawn(function()
             local duration = 10
             for i = 1, duration do
                 local percent = math.floor((i / duration) * 100)
                 PercentText.Text = "กำลังดึงข้อมูลสคริปต์... " .. percent .. "% (" .. i .. "/10s)"
                 
-                -- อัปเดตขนาดแถบสีเขียว
                 TweenService:Create(ProgressBarFill, TweenInfo.new(1, Enum.EasingStyle.Linear), {
                     Size = UDim2.new(i / duration, 0, 1, 0)
                 }):Play()
@@ -198,11 +191,9 @@ SubmitBtn.MouseButton1Click:Connect(function()
             PercentText.Text = "⚡ โหลดเสร็จสิ้น! กำลังเปิดหน้าต่างหลัก..."
             task.wait(0.5)
 
-            -- ทำลายหน้าต่าง Loading
             ScreenGui:Destroy()
 
-            -- 🚀 เรียกสคริปต์หลักทันที!
-            print("[YinYang Key System] กำลังโหลดโค้ดหลัก...")
+            -- เรียกสคริปต์หลักทันที
             local success, err = pcall(function()
                 loadstring(game:HttpGet(MAIN_SCRIPT_URL))()
             end)
