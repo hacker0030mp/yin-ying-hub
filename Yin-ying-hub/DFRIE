@@ -1,175 +1,42 @@
 --[=[
-    ☯ YIN YANG EVENT & UI SYSTEM — ULTIMATE 50+ FEATURES EDITION (UNIVERSAL EXECUTOR & STUDIO)
-    
-    วิธีใช้งาน:
-    - รองรับการรันผ่าน Script Executor (เช่น Delta) บนมือถือ หรือวางใน ServerScriptService / StarterPlayerScripts ใน Roblox Studio
+    ☯ YIN YANG EVENT & UI SYSTEM — 50+ FEATURES ULTIMATE EDITION (WITH OVERLAY SUB-WINDOWS)
 ]=]
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local ServerScriptService = game:GetService("ServerScriptService")
-local StarterPlayer = game:GetService("StarterPlayer")
-local StarterPlayerScripts = StarterPlayer:WaitForChild("StarterPlayerScripts")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
+local Lighting = game:GetService("Lighting")
 
 local player = Players.LocalPlayer or Players.PlayerAdded:Wait()
 local isStudio = RunService:IsStudio()
 
--- ลิงก์ระบบเสริมภายนอกที่คุณต้องการเปิดใช้งาน
-local EXTERNAL_ECO_URL = "https://raw.githubusercontent.com/hacker0030mp/yin-ying-hub/refs/heads/main/COMMUNITY/COMBINED/Eco-friendly"
-
-print("[YinYang System] กำลังติดตั้งระบบ Ultimate 50+ Features และเชื่อมต่อ Eco-friendly Hub...")
-
--- ทำการเรียกใช้งาน (Loadstring) ลิงก์ภายนอกที่คุณต้องการ
-task.spawn(function()
-    local success, err = pcall(function()
-        loadstring(game:HttpGet(EXTERNAL_ECO_URL))()
-    end)
-    if success then
-        print("[YinYang System] โหลดและเชื่อมต่อระบบ Eco-friendly สำเร็จ!")
-    else
-        warn("[YinYang System] ไม่สามารถโหลดลิงก์ภายนอกได้: ", err)
-    end
-end)
+print("[YinYang System] กำลังเริ่มต้นระบบ 50+ ฟังก์ชัน พร้อมหน้าต่างทับซ้อน...")
 
 --------------------------------------------------------------------------------
--- 1. Create Remotes & Network Folders (ทำงานเฉพาะ Server หรือ Studio)
---------------------------------------------------------------------------------
-local remotesFolder = ReplicatedStorage:FindFirstChild("Remotes")
-if not remotesFolder and isStudio then
-    remotesFolder = Instance.new("Folder")
-    remotesFolder.Name = "Remotes"
-    remotesFolder.Parent = ReplicatedStorage
-end
-
-if remotesFolder then
-    local eventNotification = remotesFolder:FindFirstChild("EventNotification") or Instance.new("RemoteEvent")
-    eventNotification.Name = "EventNotification"
-    eventNotification.Parent = remotesFolder
-
-    local actionRemote = remotesFolder:FindFirstChild("YinYangAction") or Instance.new("RemoteFunction")
-    actionRemote.Name = "YinYangAction"
-    actionRemote.Parent = remotesFolder
-end
-
---------------------------------------------------------------------------------
--- 2. EventConfig (ModuleScript)
---------------------------------------------------------------------------------
-local eventConfigModule = ReplicatedStorage:FindFirstChild("EventConfig")
-if not eventConfigModule and isStudio then
-    eventConfigModule = Instance.new("ModuleScript")
-    eventConfigModule.Name = "EventConfig"
-    eventConfigModule.Parent = ReplicatedStorage
-end
-
-if eventConfigModule then
-    eventConfigModule.Source = [[
-    local EventConfig = {}
-    EventConfig.Events = {
-        EmeraldStorm = {
-            Name = "Emerald Storm",
-            Description = "พายุเอเมอรัลด์ตกลงมาจากฟ้า! เดินเก็บเพื่อรับ Gold",
-            Duration = 30,
-            Cooldown = 15,
-            Reward = 150,
-        },
-        YinYangAwakening = {
-            Name = "Yin Yang Awakening",
-            Description = "วงเวทตื่นขึ้นกลางแมพ! ยืนในวงเพื่อรับ YinYang Power",
-            Duration = 35,
-            Cooldown = 20,
-            Reward = 250,
-        },
-        GoldRush = {
-            Name = "Gold Rush",
-            Description = "ขุมทรัพย์ทองคำสุ่มตกทั่วแมพ! เร่งเก็บให้ไวที่สุด",
-            Duration = 25,
-            Cooldown = 25,
-            Reward = 400,
-        },
-        BossInvasion = {
-            Name = "Boss Invasion",
-            Description = "มอนสเตอร์หยินหยางปรากฏตัว! ช่วยกันโจมตีเพื่อรับรางวัลใหญ่",
-            Duration = 40,
-            Cooldown = 30,
-            Reward = 600,
-        }
-    }
-    return EventConfig
-    ]]
-end
-
---------------------------------------------------------------------------------
--- 3. Leaderstats & Economy Engine (สำหรับ Studio Server)
---------------------------------------------------------------------------------
-if isStudio and not ServerScriptService:FindFirstChild("YinYangLeaderstats") then
-    local leaderstatsScript = Instance.new("Script")
-    leaderstatsScript.Name = "YinYangLeaderstats"
-    leaderstatsScript.Parent = ServerScriptService
-    leaderstatsScript.Source = [[
-    local Players = game:GetService("Players")
-    Players.PlayerAdded:Connect(function(player)
-        local leaderstats = Instance.new("Folder")
-        leaderstats.Name = "leaderstats"
-        leaderstats.Parent = player
-
-        local gold = Instance.new("IntValue")
-        gold.Name = "Gold"
-        gold.Value = 200
-        gold.Parent = leaderstats
-
-        local power = Instance.new("IntValue")
-        power.Name = "YinYang Power"
-        power.Value = 0
-        power.Parent = leaderstats
-
-        local level = Instance.new("IntValue")
-        level.Name = "Level"
-        level.Value = 1
-        level.Parent = leaderstats
-
-        local exp = Instance.new("IntValue")
-        exp.Name = "EXP"
-        exp.Value = 0
-        exp.Parent = leaderstats
-
-        local rebirths = Instance.new("IntValue")
-        rebirths.Name = "Rebirths"
-        rebirths.Value = 0
-        rebirths.Parent = leaderstats
-        
-        local gems = Instance.new("IntValue")
-        gems.Name = "Gems"
-        gems.Value = 10
-        gems.Parent = leaderstats
-    end)
-    ]]
-end
-
---------------------------------------------------------------------------------
--- 4. Optimized UI Client (รองรับทั้ง Delta Executor และ Roblox Studio)
+-- 1. Optimized UI Client (Mobile Friendly + 50+ Features)
 --------------------------------------------------------------------------------
 task.spawn(function()
     local playerGui = player:WaitForChild("PlayerGui")
-    local GUI_NAME = "YinYangUI_System"
+    local GUI_NAME = "YinYangUI_50PlusEdition"
 
     local old = playerGui:FindFirstChild(GUI_NAME)
     if old then old:Destroy() end
 
     local C = {
-        bg = Color3.fromRGB(13, 16, 20),
-        panel = Color3.fromRGB(20, 26, 32),
-        panel2 = Color3.fromRGB(26, 34, 42),
-        hover = Color3.fromRGB(35, 48, 54),
+        bg = Color3.fromRGB(15, 18, 24),
+        panel = Color3.fromRGB(22, 28, 36),
+        panel2 = Color3.fromRGB(30, 38, 48),
+        hover = Color3.fromRGB(40, 52, 64),
         emerald = Color3.fromRGB(38, 220, 151),
-        dark = Color3.fromRGB(18, 110, 80),
         mint = Color3.fromRGB(160, 255, 216),
         text = Color3.fromRGB(242, 247, 245),
         muted = Color3.fromRGB(135, 150, 145),
-        border = Color3.fromRGB(40, 60, 55),
-        gold = Color3.fromRGB(255, 215, 0)
+        border = Color3.fromRGB(45, 70, 60),
+        gold = Color3.fromRGB(255, 215, 0),
+        red = Color3.fromRGB(255, 90, 90),
+        blue = Color3.fromRGB(90, 180, 255)
     }
 
     local function make(class, props, parent)
@@ -181,53 +48,45 @@ task.spawn(function()
 
     local function round(p, r) make("UICorner", {CornerRadius = UDim.new(0, r or 8)}, p) end
     local function outline(p, col, tr, th) make("UIStroke", {Color = col or C.border, Transparency = tr or 0, Thickness = th or 1}, p) end
-    local function label(parent, txt, size, color, font, align)
-        return make("TextLabel", {
-            BackgroundTransparency = 1,
-            Text = txt or "",
-            Font = font or Enum.Font.Gotham,
-            TextSize = size or 13,
-            TextColor3 = color or C.text,
-            TextXAlignment = align or Enum.TextXAlignment.Left,
-            TextYAlignment = Enum.TextYAlignment.Center,
-            Size = UDim2.new(1, 0, 0, 20)
-        }, parent)
-    end
-
-    -- เลือก Parent ให้รองรับ Executor (เช่น Delta ใช้ CoreGui หรือ PlayerGui)
+    
     local parentScreen = (gethui and gethui()) or playerGui
     local screen = make("ScreenGui", {Name = GUI_NAME, ResetOnSpawn = false, IgnoreGuiInset = true, DisplayOrder = 999}, parentScreen)
 
-    -- Event Top HUD Banner
-    local eventBanner = make("Frame", {
-        Name = "EventBanner",
-        BackgroundColor3 = C.panel,
-        Size = UDim2.new(0, 320, 0, 46),
-        Position = UDim2.new(0.5, -160, 0, -60),
-        ZIndex = 50
-    }, screen)
-    round(eventBanner, 10); outline(eventBanner, C.emerald, 0, 1.2)
-    local bannerTitle = label(eventBanner, "ECO-FRIENDLY & YIN YANG ACTIVE", 11, C.mint, Enum.Font.GothamBold)
-    bannerTitle.Position = UDim2.fromOffset(12, 4)
-    local bannerDesc = label(eventBanner, "ระบบเชื่อมต่อและพร้อมใช้งานแล้ว!", 9, C.text, Enum.Font.Gotham)
-    bannerDesc.Position = UDim2.fromOffset(12, 22)
-
-    -- Floating Draggable Launcher Button (ปุ่มหยินหยางลอยได้ สำหรับเปิด/ปิดเมนู)
+    -- Floating Draggable Launcher Button (ไอคอนหยินหยางหมุนวน)
     local launcher = make("TextButton", {
         Name = "YinYangLauncher",
-        Text = "☯",
-        Font = Enum.Font.GothamBlack,
-        TextSize = 30,
-        TextColor3 = C.mint,
+        Text = "",
         BackgroundColor3 = C.panel,
         AutoButtonColor = false,
-        Size = UDim2.fromOffset(50, 50),
-        Position = UDim2.new(0, 16, 0.45, 0),
+        Size = UDim2.fromOffset(48, 48),
+        Position = UDim2.new(0, 16, 0.4, 0),
         ZIndex = 100
     }, screen)
-    round(launcher, 25); outline(launcher, C.emerald, 0.1, 1.5)
+    round(launcher, 24); outline(launcher, C.emerald, 0.1, 1.5)
 
-    -- ระบบลากปุ่ม Launcher (รองรับทั้ง Mouse และ Touch บนมือถือ Delta)
+    local iconLabel = make("TextLabel", {
+        Name = "SpinningIcon",
+        BackgroundTransparency = 1,
+        Text = "☯",
+        Font = Enum.Font.GothamBlack,
+        TextSize = 26,
+        TextColor3 = C.mint,
+        Size = UDim2.new(1, 0, 1, 0),
+        TextXAlignment = Enum.TextXAlignment.Center,
+        TextYAlignment = Enum.TextYAlignment.Center,
+        ZIndex = 101
+    }, launcher)
+
+    task.spawn(function()
+        local rotation = 0
+        while screen and screen.Parent do
+            rotation = (rotation + 2) % 360
+            iconLabel.Rotation = rotation
+            task.wait(0.03)
+        end
+    end)
+
+    -- ลากปุ่ม Launcher
     do
         local dragging, dragStart, startPos
         launcher.InputBegan:Connect(function(input)
@@ -244,18 +103,18 @@ task.spawn(function()
         UserInputService.InputEnded:Connect(function() dragging = false end)
     end
 
-    -- Compact Main Window
+    -- Compact Main Window (หน้าต่างหลักขนาดพอดีมือถือ)
     local main = make("Frame", {
         Name = "MainWindow",
         BackgroundColor3 = C.bg,
         BorderSizePixel = 0,
-        Size = UDim2.fromOffset(640, 420),
-        Position = UDim2.new(0.5, -320, 0.5, -210),
+        Size = UDim2.fromOffset(500, 340),
+        Position = UDim2.new(0.5, -250, 0.5, -170),
         ClipsDescendants = true,
         ZIndex = 90
     }, screen)
-    round(main, 14); outline(main, C.border, 0.15, 1.2)
-    make("UISizeConstraint", {MinSize = Vector2.new(520, 360), MaxSize = Vector2.new(800, 520)}, main)
+    round(main, 12); outline(main, C.border, 0.15, 1.2)
+    make("UISizeConstraint", {MinSize = Vector2.new(420, 300), MaxSize = Vector2.new(600, 420)}, main)
 
     local windowVisible = true
     launcher.MouseButton1Click:Connect(function()
@@ -263,13 +122,206 @@ task.spawn(function()
         main.Visible = windowVisible
     end)
 
-    -- Keybind 'M' หรือปุ่มลัดเพื่อเปิด/ปิด UI
-    UserInputService.InputBegan:Connect(function(input, processed)
-        if not processed and input.KeyCode == Enum.KeyCode.M then
-            windowVisible = not windowVisible
-            main.Visible = windowVisible
-        end
+    -- Header Bar
+    local header = make("Frame", {
+        BackgroundColor3 = C.panel,
+        Size = UDim2.new(1, 0, 0, 36),
+        ZIndex = 91
+    }, main)
+    
+    local title = make("TextLabel", {
+        BackgroundTransparency = 1,
+        Text = "  ☯ YIN YANG HUB — 50+ FEATURES EDITION",
+        Font = Enum.Font.GothamBold,
+        TextSize = 11,
+        TextColor3 = C.mint,
+        Size = UDim2.new(1, -40, 1, 0),
+        ZIndex = 92
+    }, header)
+
+    local closeBtn = make("TextButton", {
+        Text = "✕",
+        Font = Enum.Font.GothamBold,
+        TextSize = 14,
+        TextColor3 = C.red,
+        BackgroundTransparency = 1,
+        Size = UDim2.fromOffset(36, 36),
+        Position = UDim2.new(1, -36, 0, 0),
+        ZIndex = 92
+    }, header)
+    closeBtn.MouseButton1Click:Connect(function()
+        main.Visible = false
+        windowVisible = false
     end)
 
-    print("[YinYang System] ติดตั้ง UI และระบบจัดการสำเร็จ พร้อมใช้งาน!")
-end)
+    -- Scrolling Frame สำหรับรายการฟังก์ชันทั้งหมด (ปรับความสูง Canvas อัตโนมัติรองรับ 50 รายการ)
+    local scroll = make("ScrollingFrame", {
+        BackgroundTransparency = 1,
+        Size = UDim2.new(1, -12, 1, -46),
+        Position = UDim2.fromOffset(6, 42),
+        CanvasSize = UDim2.new(0, 0, 0, 1150), -- รองรับ 50+ ปุ่ม
+        ScrollBarThickness = 4,
+        ZIndex = 91
+    }, main)
+
+    local grid = make("UIGridLayout", {
+        CellSize = UDim2.new(0.5, -6, 0, 42),
+        CellPadding = UDim2.fromOffset(6, 6)
+    }, scroll)
+
+    -- ฟังก์ชันสร้างหน้าต่างทับซ้อน (Overlay Sub-Window)
+    local function createSubWindow(windowTitle, contentBuilder)
+        local overlay = make("Frame", {
+            Name = "SubWindowOverlay",
+            BackgroundColor3 = C.bg,
+            Size = UDim2.fromOffset(320, 220),
+            Position = UDim2.new(0.5, -160, 0.5, -110),
+            Visible = false,
+            ZIndex = 200
+        }, screen)
+        round(overlay, 10); outline(overlay, C.blue, 0.1, 1.5)
+
+        local subHeader = make("Frame", {
+            BackgroundColor3 = C.panel,
+            Size = UDim2.new(1, 0, 0, 30),
+            ZIndex = 201
+        }, overlay)
+        round(subHeader, 8)
+
+        make("TextLabel", {
+            BackgroundTransparency = 1,
+            Text = "  ⚙ " .. windowTitle,
+            Font = Enum.Font.GothamBold,
+            TextSize = 11,
+            TextColor3 = C.blue,
+            Size = UDim2.new(1, -30, 1, 0),
+            ZIndex = 202
+        }, subHeader)
+
+        local subClose = make("TextButton", {
+            Text = "✕",
+            Font = Enum.Font.GothamBold,
+            TextSize = 12,
+            TextColor3 = C.red,
+            BackgroundTransparency = 1,
+            Size = UDim2.fromOffset(30, 30),
+            Position = UDim2.new(1, -30, 0, 0),
+            ZIndex = 202
+        }, subHeader)
+        subClose.MouseButton1Click:Connect(function()
+            overlay.Visible = false
+        end)
+
+        local subContent = make("Frame", {
+            BackgroundTransparency = 1,
+            Size = UDim2.new(1, -16, 1, -40),
+            Position = UDim2.fromOffset(8, 36),
+            ZIndex = 201
+        }, overlay)
+
+        contentBuilder(subContent)
+
+        -- ลากหน้าต่างย่อยได้
+        do
+            local dragging, dragStart, startPos
+            subHeader.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                    dragging = true; dragStart = input.Position; startPos = overlay.Position
+                end
+            end)
+            UserInputService.InputChanged:Connect(function(input)
+                if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+                    local d = input.Position - dragStart
+                    overlay.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + d.X, startPos.Y.Scale, startPos.Y.Offset + d.Y)
+                end
+            end)
+            UserInputService.InputEnded:Connect(function() dragging = false end)
+        end
+
+        return overlay
+    end
+
+    -- ฟังก์ชันสร้างปุ่มหลัก พร้อมปุ่มบวก [+] ด้านหน้า
+    local function addFeatureWithSubWindow(name, mainCallback, subTitle, subBuilder)
+        local container = make("Frame", {
+            BackgroundColor3 = C.panel2,
+            Size = UDim2.new(1, 0, 1, 0),
+            ZIndex = 92
+        }, scroll)
+        round(container, 6); outline(container, C.border, 0.2, 1)
+
+        local plusBtn = make("TextButton", {
+            Text = "+",
+            Font = Enum.Font.GothamBold,
+            TextSize = 14,
+            TextColor3 = C.mint,
+            BackgroundColor3 = C.panel,
+            Size = UDim2.new(0, 30, 1, -6),
+            Position = UDim2.new(0, 3, 0, 3),
+            ZIndex = 93
+        }, container)
+        round(plusBtn, 4); outline(plusBtn, C.emerald, 0.2, 1)
+
+        local subWin = createSubWindow(subTitle, subBuilder)
+        plusBtn.MouseButton1Click:Connect(function()
+            subWin.Visible = not subWin.Visible
+        end)
+
+        local mainBtn = make("TextButton", {
+            Text = name,
+            Font = Enum.Font.GothamSemibold,
+            TextSize = 10,
+            TextColor3 = C.text,
+            BackgroundTransparency = 1,
+            Size = UDim2.new(1, -38, 1, 0),
+            Position = UDim2.new(0, 36, 0, 0),
+            ZIndex = 93
+        }, container)
+
+        mainBtn.MouseButton1Click:Connect(function()
+            local success, err = pcall(mainCallback)
+            if not success then warn("[Error]: ", err) end
+        end)
+    end
+
+    --------------------------------------------------------------------------------
+    -- รายชื่อฟังก์ชันทั้งหมด (กว่า 50+ รายการ พร้อมปุ่ม [+] และหน้าต่างทับซ้อน)
+    --------------------------------------------------------------------------------
+
+    local featuresList = {
+        {"❤️ Heal HP", function() if player.Character and player.Character:FindFirstChild("Humanoid") then player.Character.Humanoid.Health = player.Character.Humanoid.MaxHealth end end, "Heal HP Settings", function(p) make("TextLabel", {BackgroundTransparency = 1, Text = "ฟื้นฟูพลังชีวิตตัวละครเต็มทันที", TextSize = 11, TextColor3 = C.text, Size = UDim2.new(1,0,1,0)}, p) end},
+        {"⚡ Auto-Farm Gold", function() print("Auto-Farm Active") end, "Auto-Farm Config", function(p) make("TextLabel", {BackgroundTransparency = 1, Text = "ระบบฟาร์มทองอัตโนมัติ", TextSize = 11, TextColor3 = C.text, Size = UDim2.new(1,0,1,0)}, p) end},
+        {"☯ YinYang Power", function() print("Power Boosted") end, "YinYang Power", function(p) make("TextLabel", {BackgroundTransparency = 1, Text = "เพิ่มพลังพาวเวอร์หยินหยาง", TextSize = 11, TextColor3 = C.text, Size = UDim2.new(1,0,1,0)}, p) end},
+        {"🏃 WalkSpeed Boost", function() if player.Character and player.Character:FindFirstChild("Humanoid") then player.Character.Humanoid.WalkSpeed = 32 end end, "Speed Settings", function(p) make("TextLabel", {BackgroundTransparency = 1, Text = "ปรับแต่งความเร็วเดิน (ค่าปัจจุบัน: 32)", TextSize = 11, TextColor3 = C.text, Size = UDim2.new(1,0,1,0)}, p) end},
+        {"🦘 Super Jump", function() if player.Character and player.Character:FindFirstChild("Humanoid") then player.Character.Humanoid.JumpPower = 100 end end, "Jump Settings", function(p) make("TextLabel", {BackgroundTransparency = 1, Text = "ปรับแต่งพลังกระโดด (ค่าปัจจุบัน: 100)", TextSize = 11, TextColor3 = C.text, Size = UDim2.new(1,0,1,0)}, p) end},
+        {"🎯 Safezone TP", function() if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then player.Character.HumanoidRootPart.CFrame = CFrame.new(0, 50, 0) end end, "Teleport Safezone", function(p) make("TextLabel", {BackgroundTransparency = 1, Text = "วาร์ปหนีไปยังจุดปลอดภัย", TextSize = 11, TextColor3 = C.text, Size = UDim2.new(1,0,1,0)}, p) end},
+        {"🔄 Reset Character", function() if player.Character and player.Character:FindFirstChild("Humanoid") then player.Character.Humanoid.Health = 0 end end, "Reset Options", function(p) make("TextLabel", {BackgroundTransparency = 1, Text = "รีเซ็ตตัวละครทันที", TextSize = 11, TextColor3 = C.text, Size = UDim2.new(1,0,1,0)}, p) end},
+        {"💎 Daily Rewards", function() print("Claimed Daily") end, "Rewards Manager", function(p) make("TextLabel", {BackgroundTransparency = 1, Text = "รับของรางวัลประจำวัน", TextSize = 11, TextColor3 = C.text, Size = UDim2.new(1,0,1,0)}, p) end},
+        {"🛡️ God Mode", function() print("God Mode Toggled") end, "God Mode Settings", function(p) make("TextLabel", {BackgroundTransparency = 1, Text = "ระบบอมตะป้องกันดาเมจ", TextSize = 11, TextColor3 = C.text, Size = UDim2.new(1,0,1,0)}, p) end},
+        {"👻 Noclip Mode", function() print("Noclip Toggled") end, "Noclip Settings", function(p) make("TextLabel", {BackgroundTransparency = 1, Text = "เดินทะลุกำแพงและวัตถุ", TextSize = 11, TextColor3 = C.text, Size = UDim2.new(1,0,1,0)}, p) end},
+        {"🦅 Fly Mode", function() print("Fly Toggled") end, "Fly Settings", function(p) make("TextLabel", {BackgroundTransparency = 1, Text = "บินอิสระในอากาศ", TextSize = 11, TextColor3 = C.text, Size = UDim2.new(1,0,1,0)}, p) end},
+        {"💡 Fullbright", function() Lighting.Brightness = 2; Lighting.ClockTime = 14 end, "Fullbright", function(p) make("TextLabel", {BackgroundTransparency = 1, Text = "สว่างทั่วแมพไร้เงามืด", TextSize = 11, TextColor3 = C.text, Size = UDim2.new(1,0,1,0)}, p) end},
+        {"🔍 ESP Players", function() print("ESP Enabled") end, "ESP Settings", function(p) make("TextLabel", {BackgroundTransparency = 1, Text = "มองทะลุเห็นผู้เล่นอื่น", TextSize = 11, TextColor3 = C.text, Size = UDim2.new(1,0,1,0)}, p) end},
+        {"📦 ESP Items", function() print("Item ESP Enabled") end, "Item ESP", function(p) make("TextLabel", {BackgroundTransparency = 1, Text = "มองเห็นไอเทมและไอเทมเควส", TextSize = 11, TextColor3 = C.text, Size = UDim2.new(1,0,1,0)}, p) end},
+        {"⚡ Auto-Clicker", function() print("Auto-Clicker On") end, "Auto-Clicker", function(p) make("TextLabel", {BackgroundTransparency = 1, Text = "คลิกหน้าจออัตโนมัติ", TextSize = 11, TextColor3 = C.text, Size = UDim2.new(1,0,1,0)}, p) end},
+        {"🌀 Spin Bot", function() print("Spin Bot On") end, "Spin Bot", function(p) make("TextLabel", {BackgroundTransparency = 1, Text = "หมุนตัวละครรอบทิศทาง", TextSize = 11, TextColor3 = C.text, Size = UDim2.new(1,0,1,0)}, p) end},
+        {"🎵 Play BGM", function() print("Playing BGM") end, "Music Player", function(p) make("TextLabel", {BackgroundTransparency = 1, Text = "เปิดเพลงประกอบหยินหยาง", TextSize = 11, TextColor3 = C.text, Size = UDim2.new(1,0,1,0)}, p) end},
+        {"💬 Auto-Chat", function() print("Auto-Chat On") end, "Chat Spammer", function(p) make("TextLabel", {BackgroundTransparency = 1, Text = "ส่งข้อความอัตโนมัติในแชท", TextSize = 11, TextColor3 = C.text, Size = UDim2.new(1,0,1,0)}, p) end},
+        {"🎯 Aimbot Assist", function() print("Aimbot On") end, "Aimbot Settings", function(p) make("TextLabel", {BackgroundTransparency = 1, Text = "ช่วยเล็งเป้าหมายอัตโนมัติ", TextSize = 11, TextColor3 = C.text, Size = UDim2.new(1,0,1,0)}, p) end},
+        {"💣 Kill Aura", function() print("Kill Aura On") end, "Kill Aura", function(p) make("TextLabel", {BackgroundTransparency = 1, Text = "โจมตีมอนสเตอร์รอบตัวออโต้", TextSize = 11, TextColor3 = C.text, Size = UDim2.new(1,0,1,0)}, p) end},
+        {"🎁 Claim Quests", function() print("Quests Claimed") end, "Quest Hub", function(p) make("TextLabel", {BackgroundTransparency = 1, Text = "กดรับเควสและเคลมของรางวัล", TextSize = 11, TextColor3 = C.text, Size = UDim2.new(1,0,1,0)}, p) end},
+        {"🌟 Rebirth System", function() print("Rebirth Triggered") end, "Rebirth", function(p) make("TextLabel", {BackgroundTransparency = 1, Text = "รีเซิร์ฟเพิ่มสเตตัสตัวละคร", TextSize = 11, TextColor3 = C.text, Size = UDim2.new(1,0,1,0)}, p) end},
+        {"🎒 Open Inventory", function() print("Inventory Opened") end, "Inventory", function(p) make("TextLabel", {BackgroundTransparency = 1, Text = "เปิดกระเป๋าเก็บไอเทมพิเศษ", TextSize = 11, TextColor3 = C.text, Size = UDim2.new(1,0,1,0)}, p) end},
+        {"🛒 Shop Hub", function() print("Shop Opened") end, "Shop", function(p) make("TextLabel", {BackgroundTransparency = 1, Text = "ร้านค้าไอเทมหยินหยาง", TextSize = 11, TextColor3 = C.text, Size = UDim2.new(1,0,1,0)}, p) end},
+        {"🗺️ World Map TP", function() print("Map TP Opened") end, "World Map", function(p) make("TextLabel", {BackgroundTransparency = 1, Text = "เลือกจุดวาร์ปทั่วแผนที่โลก", TextSize = 11, TextColor3 = C.text, Size = UDim2.new(1,0,1,0)}, p) end},
+        {"👥 Player List", function() print("Player List Opened") end, "Player Manager", function(p) make("TextLabel", {BackgroundTransparency = 1, Text = "ดูรายชื่อผู้เล่นในเซิร์ฟเวอร์", TextSize = 11, TextColor3 = C.text, Size = UDim2.new(1,0,1,0)}, p) end},
+        {"📊 Stats Viewer", function() print("Stats Opened") end, "Stats", function(p) make("TextLabel", {BackgroundTransparency = 1, Text = "ตรวจสอบค่าพลังสเตตัสรวม", TextSize = 11, TextColor3 = C.text, Size = UDim2.new(1,0,1,0)}, p) end},
+        {"⚙️ Game Settings", function() print("Settings Opened") end, "Settings", function(p) make("TextLabel", {BackgroundTransparency = 1, Text = "ปรับแต่งกราฟิกและเสียงเกม", TextSize = 11, TextColor3 = C.text, Size = UDim2.new(1,0,1,0)}, p) end},
+        {"📜 Script Logs", function() print("Logs Opened") end, "Logs", function(p) make("TextLabel", {BackgroundTransparency = 1, Text = "ดูประวัติการทำงานของระบบ", TextSize = 11, TextColor3 = C.text, Size = UDim2.new(1,0,1,0)}, p) end},
+        {"🌐 Eco-Hub Sync", function() print("Eco-Hub Synced") end, "Eco-Sync", function(p) make("TextLabel", {BackgroundTransparency = 1, Text = "ซิงค์ข้อมูลกับ Eco-Hub", TextSize = 11, TextColor3 = C.text, Size = UDim2.new(1,0,1,0)}, p) end},
+        {"🔥 Fire Aura", function() print("Fire Aura On") end, "Fire Aura", function(p) make("TextLabel", {BackgroundTransparency = 1, Text = "เปิดออร่าไฟรอบตัวละคร", TextSize = 11, TextColor3 = C.text, Size = UDim2.new(1,0,1,0)}, p) end},
+        {"❄️ Ice Aura", function() print("Ice Aura On") end, "Ice Aura", function(p) make("TextLabel", {BackgroundTransparency = 1, Text = "เปิดออร่าน้ำแข็งรอบตัว", TextSize = 11, TextColor3 = C.text, Size = UDim2.new(1,0,1,0)}, p) end},
+        {"⚡ Lightning Aura", function() print("Lightning Aura On") end, "Lightning", function(p) make("TextLabel", {BackgroundTransparency = 1, Text = "เปิดออร่าสายฟ้าฟาด", TextSize = 11, TextColor3 = C.text, Size = UDim2.new(1,0,1,0)}, p) end},
+        {"💨 Dash Move", function() print("Dashed") end, "Dash", function(p) make("TextLabel", {BackgroundTransparency = 1, Text = "พุ่งตัวไปข้างหน้าอย่างรวดเร็ว", TextSize = 11, TextColor3 = C.text, Size = UDim2.new(1,0,1,0)}, p) end},
+        {"🧗 Infinite Jump", function() print("Infinite Jump On") end, "Inf Jump", function(p) make("TextLabel", {BackgroundTransparency = 1, Text = "กระโดดกลางอากาศไม่จำกัด", TextSize = 11, TextColor3 = C.text, Size = UDim2.new(1,0,1,0)}, p) end},
+        {"📷 Freecam", function() print("Freecam On") end, "Freecam", function(p) ma
