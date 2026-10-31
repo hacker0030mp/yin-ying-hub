@@ -1,15 +1,10 @@
-
 --[=[
-    ☯ YIN YANG HUB — TABBED CATEGORY UI (FULL FUNCTIONAL EDITION)
-    ค่ายผู้พัฒนา: YIN YANG TEAM x GALACTIC HUB
-    รองรับ: Mobile Executors (Delta, Hydrogen, Fluxus, Codex) & Roblox Studio
+    ☯ YIN YANG HUB — TABBED CATEGORY UI (FIXED & FUNCTIONAL EDITION)
 ]=]
 
 local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
 local Lighting = game:GetService("Lighting")
 local TeleportService = game:GetService("TeleportService")
 
@@ -42,16 +37,18 @@ local C = {
 _G.YinYangConfig = _G.YinYangConfig or {
     WalkSpeed = 16,
     JumpPower = 50,
+    JumpBoost = false,
     Noclip = false,
     Fly = false,
     FlySpeed = 50,
     InfJump = false,
-    GodMode = false,
     Fullbright = false,
     ESP = false,
     AutoClicker = false,
     KillAura = false,
-    Spinbot = false
+    Spinbot = false,
+    EmoteSpeed = false,
+    AutoKillAura = false
 }
 
 local state = _G.YinYangConfig
@@ -71,7 +68,7 @@ local function outline(p, col, tr, th) make("UIStroke", {Color = col or C.border
 local screen = make("ScreenGui", {Name = GUI_NAME, ResetOnSpawn = false, IgnoreGuiInset = true, DisplayOrder = 999}, parentScreen)
 
 --------------------------------------------------------------------------------
--- Floating Launcher Button (ปุ่มสลับ เปิด/ปิด)
+-- Floating Launcher Button
 --------------------------------------------------------------------------------
 local launcher = make("TextButton", {
     Name = "Launcher",
@@ -93,16 +90,6 @@ local iconLabel = make("TextLabel", {
     Size = UDim2.new(1, 0, 1, 0),
     ZIndex = 201
 }, launcher)
-
--- Spin animation for launcher icon
-task.spawn(function()
-    local rot = 0
-    while screen and screen.Parent do
-        rot = (rot + 2) % 360
-        iconLabel.Rotation = rot
-        task.wait(0.03)
-    end
-end)
 
 -- Mobile Dragging for Launcher
 do
@@ -138,7 +125,6 @@ launcher.MouseButton1Click:Connect(function()
     main.Visible = not main.Visible
 end)
 
--- Top Header
 local header = make("Frame", {
     BackgroundColor3 = C.sidebar,
     Size = UDim2.new(1, 0, 0, 38),
@@ -147,7 +133,7 @@ local header = make("Frame", {
 
 make("TextLabel", {
     BackgroundTransparency = 1,
-    Text = "  ☯ YIN YANG HUB  |  ผู้พัฒนา: YIN YANG TEAM x GALACTIC HUB",
+    Text = "  ☯ YIN YANG HUB  |  Fixed Edition",
     Font = Enum.Font.GothamBold,
     TextSize = 11,
     TextColor3 = C.mint,
@@ -169,10 +155,7 @@ local closeBtn = make("TextButton", {
 }, header)
 closeBtn.MouseButton1Click:Connect(function() main.Visible = false end)
 
---------------------------------------------------------------------------------
--- Split Layout (Left Sidebar & Right Content)
---------------------------------------------------------------------------------
--- Left Sidebar Frame
+-- Split Layout
 local sidebar = make("Frame", {
     BackgroundColor3 = C.sidebar,
     Size = UDim2.new(0, 150, 1, -38),
@@ -191,12 +174,11 @@ local tabScroll = make("ScrollingFrame", {
     ZIndex = 102
 }, sidebar)
 
-local tabListLayout = make("UIListLayout", {
+make("UIListLayout", {
     SortOrder = Enum.SortOrder.LayoutOrder,
     Padding = UDim.new(0, 4)
 }, tabScroll)
 
--- Right Content Frame
 local contentFrame = make("Frame", {
     BackgroundColor3 = C.content,
     Size = UDim2.new(1, -150, 1, -38),
@@ -204,9 +186,6 @@ local contentFrame = make("Frame", {
     ZIndex = 101
 }, main)
 
---------------------------------------------------------------------------------
--- Tab & Component Builders
---------------------------------------------------------------------------------
 local tabs = {}
 local activeTab = nil
 
@@ -253,7 +232,6 @@ local function createTab(tabName, icon)
 
     tabs[tabName] = {button = tabBtn, page = page}
 
-    -- Auto select first tab
     if not activeTab then
         page.Visible = true
         tabBtn.BackgroundColor3 = C.panel
@@ -264,7 +242,6 @@ local function createTab(tabName, icon)
     return page
 end
 
--- Component Functions
 local function addAction(page, text, callback)
     local btn = make("TextButton", {
         Text = text,
@@ -302,6 +279,8 @@ local function addToggle(page, text, stateKey, callback)
         ZIndex = 104
     }, container)
 
+    local stroke = outline(container, state[stateKey] and C.active or C.red, 0.3, 1)
+
     local toggleBtn = make("TextButton", {
         Text = state[stateKey] and "ON" or "OFF",
         Font = Enum.Font.GothamBold,
@@ -312,14 +291,14 @@ local function addToggle(page, text, stateKey, callback)
         Position = UDim2.new(1, -56, 0.5, -11),
         ZIndex = 104
     }, container)
-    round(toggleBtn, 4); outline(toggleBtn, state[stateKey] and C.active or C.red, 0.3, 1)
+    round(toggleBtn, 4)
 
     toggleBtn.MouseButton1Click:Connect(function()
         state[stateKey] = not state[stateKey]
         toggleBtn.Text = state[stateKey] and "ON" or "OFF"
         toggleBtn.TextColor3 = state[stateKey] and C.mint or C.red
         toggleBtn.BackgroundColor3 = state[stateKey] and C.hover or C.bg
-        toggleBtn.UIStroke.Color = state[stateKey] and C.active or C.red
+        stroke.Color = state[stateKey] and C.active or C.red
         if callback then callback(state[stateKey]) end
     end)
 end
@@ -328,19 +307,17 @@ end
 -- TABS & FEATURES SETUP
 --------------------------------------------------------------------------------
 
--- 1. หมวดหมู่: ตัวละคร & เคลื่อนที่ (Movement)
+-- 1. หมวดหมู่: ตัวละคร & เคลื่อนที่
 local pMove = createTab("ผู้เล่น/เคลื่อนที่", "🏃")
 
-addToggle(pMove, "สปีดการเดิน (WalkSpeed 32)", "SpeedBoost", function(val)
-    state.WalkSpeed = val and 32 or 16
-    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-        LocalPlayer.Character.Humanoid.WalkSpeed = state.WalkSpeed
-    end
+addToggle(pMove, "วิ่งตอนเต้น (Emote Speed)", "EmoteSpeed", function(val)
+    state.EmoteSpeed = val
 end)
 
 addToggle(pMove, "พลังกระโดด (JumpPower 100)", "JumpBoost", function(val)
     state.JumpPower = val and 100 or 50
     if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid.UseJumpPower = true
         LocalPlayer.Character.Humanoid.JumpPower = state.JumpPower
     end
 end)
@@ -369,7 +346,7 @@ addAction(pMove, "🔄 รีเซ็ตตัวละคร (Reset Character)
     end
 end)
 
--- 2. หมวดหมู่: มองทะลุ & แมพ (Visuals & World)
+-- 2. หมวดหมู่: มองทะลุ & แมพ
 local pVisual = createTab("การมองเห็น/แมพ", "👁️")
 
 addToggle(pVisual, "เปิดแมพสว่าง (Fullbright)", "Fullbright", function(val)
@@ -384,22 +361,26 @@ addToggle(pVisual, "ESP มองทะลุผู้เล่น", "ESP", func
     state.ESP = val
 end)
 
--- 3. หมวดหมู่: ระบบต่อสู้ & ออโต้ (Combat & Automation)
+-- 3. หมวดหมู่: ต่อสู้ & ออโต้
 local pCombat = createTab("ต่อสู้/ออโต้", "⚔️")
 
 addToggle(pCombat, "คลิกอัตโนมัติ (Auto Clicker)", "AutoClicker", function(val)
     state.AutoClicker = val
 end)
 
-addToggle(pCombat, "โจมตีรอบตัว (Kill Aura)", "KillAura", function(val)
-    state.KillAura = val
-end)
-
 addToggle(pCombat, "หมุนตัวละคร (Spinbot)", "Spinbot", function(val)
     state.Spinbot = val
 end)
 
--- 4. หมวดหมู่: วาร์ป & เซิร์ฟเวอร์ (Teleport & Server)
+addToggle(pCombat, "โจมตีออร่า (KillAura)", "KillAura", function(val)
+    state.KillAura = val
+end)
+
+addToggle(pCombat, "ออโต้คิลล์ออร่า (AutoKillAura)", "AutoKillAura", function(val)
+    state.AutoKillAura = val
+end)
+
+-- 4. หมวดหมู่: วาร์ป & เซิร์ฟเวอร์
 local pTP = createTab("วาร์ป/เซิร์ฟเวอร์", "🌐")
 
 addAction(pTP, "🎯 วาร์ปไปจุดปลอดภัย (Safezone TP)", function()
@@ -416,7 +397,7 @@ addAction(pTP, "🔀 Server Hop (สุ่มย้ายเซิร์ฟ)", f
     TeleportService:Teleport(game.PlaceId, LocalPlayer)
 end)
 
--- 5. หมวดหมู่: External Hubs (Galactic WindUI & Others)
+-- 5. หมวดหมู่: External Hubs
 local pExt = createTab("สคริปต์ภายนอก", "🌌")
 
 addAction(pExt, "🌌 รัน Galactic-Hub WindUI", function()
@@ -437,90 +418,28 @@ addAction(pExt, "❌ ปิดการทำงานของ Hub ทั้ง
 end)
 
 --------------------------------------------------------------------------------
--- BACKGROUND LOOPS & SYSTEM LOGIC (ทำงานจริงตามปุ่มกด)
+-- BACKGROUND LOOPS & SYSTEM LOGIC
 --------------------------------------------------------------------------------
 
--- Loop: Maintain Character Stats & Properties
 RunService.Stepped:Connect(function()
-    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-        local hum = LocalPlayer.Character.Humanoid
-        if state.SpeedBoost then hum.WalkSpeed = state.WalkSpeed end
-        if state.JumpBoost then hum.JumpPower = state.JumpPower end
+    local char = LocalPlayer.Character
+    if char and char:FindFirstChild("Humanoid") then
+        local hum = char.Humanoid
+        
+        -- Jump Power update
+        if state.JumpBoost then
+            hum.UseJumpPower = true
+            hum.JumpPower = state.JumpPower
+        end
+
+        -- รองรับระบบวิ่งตอนเต้น
+        if state.EmoteSpeed then
+            for _, track in ipairs(hum:GetPlayingAnimationTracks()) do
+                track:AdjustSpeed(2.0)
+            end
+        end
     end
 
     -- Noclip Logic
-    if state.Noclip and LocalPlayer.Character then
-        for _, v in pairs(LocalPlayer.Character:GetChildren()) do
-            if v:IsA("BasePart") then
-                v.CanCollide = false
-            end
-        end
-    end
-
-    -- Fullbright Logic
-    if state.Fullbright then
-        Lighting.Brightness = 2
-        Lighting.ClockTime = 14
-        Lighting.GlobalShadows = false
-    end
-end)
-
--- Infinite Jump Listener
-UserInputService.JumpRequest:Connect(function()
-    if state.InfJump and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-        LocalPlayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-    end
-end)
-
--- Auto Clicker Loop
-task.spawn(function()
-    while true do
-        task.wait(0.1)
-        if state.AutoClicker then
-            mouse1click()
-        end
-    end
-end)
-
--- Spinbot Loop
-task.spawn(function()
-    while true do
-        task.wait(0.03)
-        if state.Spinbot and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            LocalPlayer.Character.HumanoidRootPart.CFrame = LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.Angles(0, math.rad(30), 0)
-        end
-    end
-end)
-
--- ESP System Loop
-task.spawn(function()
-    local espFolder = Instance.new("Folder", screen)
-    espFolder.Name = "YinYangESP"
-
-    while true do
-        task.wait(0.5)
-        espFolder:ClearAllChildren()
-
-        if state.ESP then
-            for _, target in pairs(Players:GetPlayers()) do
-                if target ~= LocalPlayer and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
-                    local hrp = target.Character.HumanoidRootPart
-                    local bgui = Instance.new("BillboardGui", espFolder)
-                    bgui.Adornee = hrp
-                    bgui.Size = UDim2.fromOffset(100, 30)
-                    bgui.AlwaysOnTop = true
-
-                    local txt = Instance.new("TextLabel", bgui)
-                    txt.Size = UDim2.new(1, 0, 1, 0)
-                    txt.BackgroundTransparency = 1
-                    txt.Text = target.Name
-                    txt.TextColor3 = C.red
-                    txt.Font = Enum.Font.GothamBold
-                    txt.TextSize = 12
-                end
-            end
-        end
-    end
-end)
-
-print("[YinYang Hub] โหลดระบบหมวดหมู่ x Galactic Hub สำเร็จเรียบร้อยแล้ว!")
+    if state.Noclip and char
+            
