@@ -37,7 +37,6 @@ local C = {
 _G.YinYangConfig = _G.YinYangConfig or {
     WalkSpeed = 16,
     JumpPower = 50,
-    JumpBoost = false,
     Noclip = false,
     Fly = false,
     FlySpeed = 50,
@@ -279,8 +278,6 @@ local function addToggle(page, text, stateKey, callback)
         ZIndex = 104
     }, container)
 
-    local stroke = outline(container, state[stateKey] and C.active or C.red, 0.3, 1)
-
     local toggleBtn = make("TextButton", {
         Text = state[stateKey] and "ON" or "OFF",
         Font = Enum.Font.GothamBold,
@@ -291,14 +288,14 @@ local function addToggle(page, text, stateKey, callback)
         Position = UDim2.new(1, -56, 0.5, -11),
         ZIndex = 104
     }, container)
-    round(toggleBtn, 4)
+    round(toggleBtn, 4); outline(toggleBtn, state[stateKey] and C.active or C.red, 0.3, 1)
 
     toggleBtn.MouseButton1Click:Connect(function()
         state[stateKey] = not state[stateKey]
         toggleBtn.Text = state[stateKey] and "ON" or "OFF"
         toggleBtn.TextColor3 = state[stateKey] and C.mint or C.red
         toggleBtn.BackgroundColor3 = state[stateKey] and C.hover or C.bg
-        stroke.Color = state[stateKey] and C.active or C.red
+        toggleBtn.UIStroke.Color = state[stateKey] and C.active or C.red
         if callback then callback(state[stateKey]) end
     end)
 end
@@ -372,11 +369,11 @@ addToggle(pCombat, "หมุนตัวละคร (Spinbot)", "Spinbot", fun
     state.Spinbot = val
 end)
 
-addToggle(pCombat, "โจมตีออร่า (KillAura)", "KillAura", function(val)
+addToggle(pCombat, "โจมตีออร่า (KillAura - Dmg 10B)", "KillAura", function(val)
     state.KillAura = val
 end)
 
-addToggle(pCombat, "ออโต้คิลล์ออร่า (AutoKillAura)", "AutoKillAura", function(val)
+addToggle(pCombat, "ออโต้คิลล์ออร่า (AutoKillAura - Dmg 10B)", "AutoKillAura", function(val)
     state.AutoKillAura = val
 end)
 
@@ -426,20 +423,87 @@ RunService.Stepped:Connect(function()
     if char and char:FindFirstChild("Humanoid") then
         local hum = char.Humanoid
         
-        -- Jump Power update
-        if state.JumpBoost then
-            hum.UseJumpPower = true
-            hum.JumpPower = state.JumpPower
-        end
-
         -- รองรับระบบวิ่งตอนเต้น
         if state.EmoteSpeed then
-            for _, track in ipairs(hum:GetPlayingAnimationTracks()) do
-                track:AdjustSpeed(2.0)
-            end
+            pcall(function()
+                for _, track in ipairs(hum:GetPlayingAnimationTracks()) do
+                    track:AdjustSpeed(2.0)
+                end
+            end)
         end
     end
 
     -- Noclip Logic
-    if state.Noclip and char
-            
+    if state.Noclip and char then
+        for _, v in pairs(char:GetChildren()) do
+            if v:IsA("BasePart") then
+                v.CanCollide = false
+            end
+        end
+    end
+
+    -- Fullbright Logic
+    if state.Fullbright then
+        Lighting.Brightness = 2
+        Lighting.ClockTime = 14
+        Lighting.GlobalShadows = false
+    end
+end)
+
+-- Infinite Jump Listener
+UserInputService.JumpRequest:Connect(function()
+    if state.InfJump and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+    end
+end)
+
+-- Auto Clicker Loop
+task.spawn(function()
+    while true do
+        task.wait(0.1)
+        if state.AutoClicker then
+            pcall(function()
+                if mouse1click then mouse1click() end
+            end)
+        end
+    end
+end)
+
+-- Spinbot Loop
+task.spawn(function()
+    while true do
+        task.wait(0.03)
+        if state.Spinbot and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            LocalPlayer.Character.HumanoidRootPart.CFrame = LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.Angles(0, math.rad(30), 0)
+        end
+    end
+end)
+
+-- KillAura / AutoKillAura Logic (ดาเมจปรับเป็น 10,000,000,000)
+task.spawn(function()
+    while true do
+        task.wait(0.5)
+        if state.KillAura or state.AutoKillAura then
+            pcall(function()
+                local char = LocalPlayer.Character
+                if char and char:FindFirstChild("HumanoidRootPart") then
+                    local myRoot = char.HumanoidRootPart
+                    for _, player in ipairs(Players:GetPlayers()) do
+                        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                            local enemyRoot = player.Character.HumanoidRootPart
+                            local distance = (myRoot.Position - enemyRoot.Position).Magnitude
+                            if distance < 15 then
+                                local enemyHum = player.Character:FindFirstChild("Humanoid")
+                                if enemyHum and enemyHum.Health > 0 then
+                                    enemyHum.Health = math.max(0, enemyHum.Health - 10000000000)
+                                end
+                            end
+                        end
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+print("[YinYang Hub] อัปเดตดาเมจ 10,000,000,000 เรียบร้อยแล้ว!")
