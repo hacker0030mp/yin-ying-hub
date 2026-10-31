@@ -1,4 +1,4 @@
--- [[ RTS Mobile Split-UI Hub (Left & Right Layout) ]]
+-- [[ Yin Yang HUB Mobile Split-UI Hub (With Yin-Yang Hub) ]]
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
@@ -13,7 +13,7 @@ ScreenGui.ResetOnSpawn = false
 local LeftFrame = Instance.new("Frame", ScreenGui)
 LeftFrame.Name = "SpeedHub_Left"
 LeftFrame.Size = UDim2.new(0, 220, 0, 155)
-LeftFrame.Position = UDim2.new(0.03, 0, 0.35, 0) -- ตำแหน่งฝั่งซ้ายของจอ
+LeftFrame.Position = UDim2.new(0.03, 0, 0.35, 0)
 LeftFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
 LeftFrame.Active = true
 LeftFrame.Draggable = true
@@ -21,7 +21,6 @@ LeftFrame.Draggable = true
 local LeftCorner = Instance.new("UICorner", LeftFrame)
 LeftCorner.CornerRadius = UDim.new(0, 8)
 
--- (โค้ดความเร็วต้นฉบับของคุณ)
 local b = Instance.new("TextButton", LeftFrame)
 b.Size = UDim2.new(1, 0, 0, 35)
 b.Text = "ความเร็ว: ปิด"
@@ -72,8 +71,8 @@ end)
 -- ===================================================
 local RightFrame = Instance.new("Frame", ScreenGui)
 RightFrame.Name = "LoaderHub_Right"
-RightFrame.Size = UDim2.new(0, 240, 0, 260)
-RightFrame.Position = UDim2.new(0.97, -240, 0.35, 0) -- ตำแหน่งฝั่งขวาของจอ
+RightFrame.Size = UDim2.new(0, 240, 0, 280)
+RightFrame.Position = UDim2.new(0.97, -240, 0.35, 0)
 RightFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 28)
 RightFrame.Active = true
 RightFrame.Draggable = true
@@ -121,7 +120,8 @@ local function createScriptBtn(btnText, scriptUrl, btnColor)
     end)
 end
 
--- รายการปุ่มสคริปต์ต่างๆ ฝั่งขวา
+-- รายการปุ่มสคริปต์ต่างๆ ฝั่งขวา (รวม Yin-Yang Hub แล้ว)
+createScriptBtn("☯️ Evade Yin-Yang Hub", "https://scriptblox.com/raw/Evade-Yin-Yang-New-227130", Color3.fromRGB(100, 100, 120))
 createScriptBtn("🏃 Run Evade (KRYVEX)", "https://raw.githubusercontent.com/komayma273-cyber/KRYVEX-Hub-K/refs/heads/main/Run%20Evade", Color3.fromRGB(180, 50, 50))
 createScriptBtn("🏃 Evade (English)", "https://api.valincsyndicate.com/v1/releases/2e4b96ee8550f52ff32b606b4704059e.lua", Color3.fromRGB(180, 70, 50))
 createScriptBtn("🔪 MM2 Farm (KRYVEX)", "https://raw.githubusercontent.com/komayma273-cyber/Script-Evade/refs/heads/main/KRYVEX%20Hub%20MM2%20Farm", Color3.fromRGB(150, 50, 180))
