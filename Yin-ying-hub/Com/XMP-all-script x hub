@@ -1,4 +1,4 @@
--- [[ Yin Yang HUB Mobile Split-UI Hub (With Yin-Yang Hub) ]]
+-- [[ RTS Mobile Split-UI Hub (Steal An Egg Added) ]]
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
@@ -71,7 +71,7 @@ end)
 -- ===================================================
 local RightFrame = Instance.new("Frame", ScreenGui)
 RightFrame.Name = "LoaderHub_Right"
-RightFrame.Size = UDim2.new(0, 240, 0, 280)
+RightFrame.Size = UDim2.new(0, 240, 0, 380)
 RightFrame.Position = UDim2.new(0.97, -240, 0.35, 0)
 RightFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 28)
 RightFrame.Active = true
@@ -120,13 +120,20 @@ local function createScriptBtn(btnText, scriptUrl, btnColor)
     end)
 end
 
--- รายการปุ่มสคริปต์ต่างๆ ฝั่งขวา (รวม Yin-Yang Hub แล้ว)
+-- รายการปุ่มสคริปต์ฝั่งขวา (เพิ่ม Steal An Egg แล้ว)
+createScriptBtn("🥚 Steal An Egg (Autofarm)", "https://scriptblox.com/raw/Steal-An-Egg-Instant-Steal-Fastest-autofarm-Everything-autofarm-223695", Color3.fromRGB(220, 150, 40))
+createScriptBtn("⌨️ +1 Speed Keyboard Escape", "https://scriptblox.com/raw/+1-Speed-Keyboard-Escape-or-Candy-and-Chocolate-Auto-Run-Auto-Win-Anti-Kick-Full-Autofarm-230390", Color3.fromRGB(200, 80, 50))
+createScriptBtn("🔪 MM2 (Moondiety Keyless)", "https://scriptblox.com/raw/Murder-Mystery-2-KEYLESS-InstaWin-AutoFarm-Kill-all-XRay-nd-more-by-Moondiety-48644", Color3.fromRGB(150, 40, 150))
+createScriptBtn("🎣 Fisch (Blackhub)", "https://scriptblox.com/raw/Fisch-Blackhub-Best-Undetected-Script-53591", Color3.fromRGB(40, 110, 180))
+createScriptBtn("🎯 RIVALS (Korax Hub)", "https://scriptblox.com/raw/RIVALS-Korax-226484", Color3.fromRGB(180, 50, 50))
+createScriptBtn("🍌 Blox Fruits (No Lag / Keyless)", "https://scriptblox.com/raw/Blox-Fruits-No-Lag-Hub-or-Keyless-234045", Color3.fromRGB(50, 150, 50))
+createScriptBtn("🌲 99 Nights (Lunar Hub)", "https://scriptblox.com/raw/99-Nights-in-the-Forest-Lunar-Hub-or-Auto-Days-Auto-Chop-Tree-Auto-Kill-Bunny-MORE-233729", Color3.fromRGB(70, 130, 180))
+createScriptBtn("⚡ Evade Updated", "https://scriptblox.com/raw/UPDATE-Evade-Evade-UPDATED-5514", Color3.fromRGB(180, 70, 50))
+createScriptBtn("🌊 Evade ReefHub (ESP/Win)", "https://scriptblox.com/raw/HLWN-Evade-ReefHub-Nextbots-ESP-Auto-Win-Teleport-Set-FOV-and-More-233180", Color3.fromRGB(50, 100, 180))
+createScriptBtn("🌐 Kant Hub (Universal)", "https://scriptblox.com/raw/Universal-Script-Kant-Hub-234038", Color3.fromRGB(120, 50, 180))
 createScriptBtn("☯️ Evade Yin-Yang Hub", "https://scriptblox.com/raw/Evade-Yin-Yang-New-227130", Color3.fromRGB(100, 100, 120))
-createScriptBtn("🏃 Run Evade (KRYVEX)", "https://raw.githubusercontent.com/komayma273-cyber/KRYVEX-Hub-K/refs/heads/main/Run%20Evade", Color3.fromRGB(180, 50, 50))
-createScriptBtn("🏃 Evade (English)", "https://api.valincsyndicate.com/v1/releases/2e4b96ee8550f52ff32b606b4704059e.lua", Color3.fromRGB(180, 70, 50))
+createScriptBtn("🏃 Run Evade (KRYVEX)", "https://raw.githubusercontent.com/komayma273-cyber/KRYVEX-Hub-K/refs/heads/main/Run%20Evade", Color3.fromRGB(160, 60, 60))
 createScriptBtn("🔪 MM2 Farm (KRYVEX)", "https://raw.githubusercontent.com/komayma273-cyber/Script-Evade/refs/heads/main/KRYVEX%20Hub%20MM2%20Farm", Color3.fromRGB(150, 50, 180))
-createScriptBtn("🍌 Banana Hub (Blox Fruits TH)", "https://loader.scriptdee.com/loaders/banana.lua", Color3.fromRGB(50, 150, 50))
-createScriptBtn("⚔️ MainLoader (Blox Fruits EN)", "https://raw.githubusercontent.com/Omgshit/Scripts/main/MainLoader.lua", Color3.fromRGB(50, 120, 180))
 createScriptBtn("🔥 VENYX HUB (แปลไทย)", "https://raw.githubusercontent.com/bafuck48-sketch/VENYX-Hub/main/VENYXHUB.lua", Color3.fromRGB(200, 140, 30))
 
 Scroll.CanvasSize = UDim2.new(0, 0, 0, Layout.AbsoluteContentSize.Y + 10)
