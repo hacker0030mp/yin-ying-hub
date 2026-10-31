@@ -1,0 +1,132 @@
+-- [[ RTS Mobile Split-UI Hub (Left & Right Layout) ]]
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "SplitMobileHub"
+ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.ResetOnSpawn = false
+
+-- ===================================================
+-- 📱 ฝั่งซ้าย (Left Side) : สคริปต์ความเร็วของคุณ (ต้นฉบับ)
+-- ===================================================
+local LeftFrame = Instance.new("Frame", ScreenGui)
+LeftFrame.Name = "SpeedHub_Left"
+LeftFrame.Size = UDim2.new(0, 220, 0, 155)
+LeftFrame.Position = UDim2.new(0.03, 0, 0.35, 0) -- ตำแหน่งฝั่งซ้ายของจอ
+LeftFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+LeftFrame.Active = true
+LeftFrame.Draggable = true
+
+local LeftCorner = Instance.new("UICorner", LeftFrame)
+LeftCorner.CornerRadius = UDim.new(0, 8)
+
+-- (โค้ดความเร็วต้นฉบับของคุณ)
+local b = Instance.new("TextButton", LeftFrame)
+b.Size = UDim2.new(1, 0, 0, 35)
+b.Text = "ความเร็ว: ปิด"
+b.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
+b.TextColor3 = Color3.fromRGB(255, 255, 255)
+b.Font = Enum.Font.SourceSansBold
+b.TextSize = 15
+
+local bCorner = Instance.new("UICorner", b)
+bCorner.CornerRadius = UDim.new(0, 6)
+
+local t = Instance.new("TextBox", LeftFrame)
+t.Position = UDim2.new(0, 10, 0, 45)
+t.Size = UDim2.new(1, -20, 0, 35)
+t.Text = "32"
+t.BackgroundColor3 = Color3.fromRGB(15, 15, 22)
+t.TextColor3 = Color3.fromRGB(255, 255, 255)
+t.Font = Enum.Font.SourceSans
+t.TextSize = 16
+
+local tCorner = Instance.new("UICorner", t)
+tCorner.CornerRadius = UDim.new(0, 6)
+
+local on = false
+b.MouseButton1Click:Connect(function()
+    on = not on
+    b.Text = on and "ความเร็ว: เปิด" or "ความเร็ว: ปิด"
+    b.BackgroundColor3 = on and Color3.fromRGB(50, 180, 50) or Color3.fromRGB(180, 50, 50)
+    
+    local h = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+    if h then 
+        h.WalkSpeed = on and (tonumber(t.Text) or 32) or 16 
+    end
+end)
+
+t.FocusLost:Connect(function()
+    if on then
+        local h = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if h then 
+            h.WalkSpeed = tonumber(t.Text) or 32 
+        end
+    end
+end)
+
+
+-- ===================================================
+-- 📱 ฝั่งขวา (Right Side) : Script Loader Hub
+-- ===================================================
+local RightFrame = Instance.new("Frame", ScreenGui)
+RightFrame.Name = "LoaderHub_Right"
+RightFrame.Size = UDim2.new(0, 240, 0, 260)
+RightFrame.Position = UDim2.new(0.97, -240, 0.35, 0) -- ตำแหน่งฝั่งขวาของจอ
+RightFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 28)
+RightFrame.Active = true
+RightFrame.Draggable = true
+
+local RightCorner = Instance.new("UICorner", RightFrame)
+RightCorner.CornerRadius = UDim.new(0, 8)
+
+local RightTitle = Instance.new("TextLabel", RightFrame)
+RightTitle.Size = UDim2.new(1, 0, 0, 32)
+RightTitle.BackgroundColor3 = Color3.fromRGB(30, 30, 42)
+RightTitle.Text = "🚀 SCRIPT LOADER"
+RightTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+RightTitle.TextSize = 14
+RightTitle.Font = Enum.Font.SourceSansBold
+
+local RightTitleCorner = Instance.new("UICorner", RightTitle)
+RightTitleCorner.CornerRadius = UDim.new(0, 8)
+
+local Scroll = Instance.new("ScrollingFrame", RightFrame)
+Scroll.Size = UDim2.new(1, -16, 1, -40)
+Scroll.Position = UDim2.new(0, 8, 0, 36)
+Scroll.BackgroundTransparency = 1
+Scroll.ScrollBarThickness = 4
+
+local Layout = Instance.new("UIListLayout", Scroll)
+Layout.SortOrder = Enum.SortOrder.LayoutOrder
+Layout.Padding = UDim.new(0, 6)
+
+local function createScriptBtn(btnText, scriptUrl, btnColor)
+    local Btn = Instance.new("TextButton", Scroll)
+    Btn.Size = UDim2.new(1, 0, 0, 32)
+    Btn.BackgroundColor3 = btnColor or Color3.fromRGB(40, 40, 55)
+    Btn.Text = btnText
+    Btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Btn.TextSize = 12
+    Btn.Font = Enum.Font.SourceSansBold
+
+    local Corner = Instance.new("UICorner", Btn)
+    Corner.CornerRadius = UDim.new(0, 6)
+
+    Btn.MouseButton1Click:Connect(function()
+        pcall(function()
+            loadstring(game:HttpGet(scriptUrl))()
+        end)
+    end)
+end
+
+-- รายการปุ่มสคริปต์ต่างๆ ฝั่งขวา
+createScriptBtn("🏃 Run Evade (KRYVEX)", "https://raw.githubusercontent.com/komayma273-cyber/KRYVEX-Hub-K/refs/heads/main/Run%20Evade", Color3.fromRGB(180, 50, 50))
+createScriptBtn("🏃 Evade (English)", "https://api.valincsyndicate.com/v1/releases/2e4b96ee8550f52ff32b606b4704059e.lua", Color3.fromRGB(180, 70, 50))
+createScriptBtn("🔪 MM2 Farm (KRYVEX)", "https://raw.githubusercontent.com/komayma273-cyber/Script-Evade/refs/heads/main/KRYVEX%20Hub%20MM2%20Farm", Color3.fromRGB(150, 50, 180))
+createScriptBtn("🍌 Banana Hub (Blox Fruits TH)", "https://loader.scriptdee.com/loaders/banana.lua", Color3.fromRGB(50, 150, 50))
+createScriptBtn("⚔️ MainLoader (Blox Fruits EN)", "https://raw.githubusercontent.com/Omgshit/Scripts/main/MainLoader.lua", Color3.fromRGB(50, 120, 180))
+createScriptBtn("🔥 VENYX HUB (แปลไทย)", "https://raw.githubusercontent.com/bafuck48-sketch/VENYX-Hub/main/VENYXHUB.lua", Color3.fromRGB(200, 140, 30))
+
+Scroll.CanvasSize = UDim2.new(0, 0, 0, Layout.AbsoluteContentSize.Y + 10)
