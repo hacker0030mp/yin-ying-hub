@@ -1,4 +1,4 @@
--- [[ RTS Mobile Split-UI Hub (Steal An Egg Added) ]]
+-- [[ RTS Mobile Split-UI Hub (Full Update with New Scripts) ]]
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
@@ -8,41 +8,72 @@ ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 ScreenGui.ResetOnSpawn = false
 
 -- ===================================================
--- 📱 ฝั่งซ้าย (Left Side) : สคริปต์ความเร็วของคุณ (ต้นฉบับ)
+-- 🔘 ปุ่มไอคอนลอยเปิด/ปิดหน้าต่าง (Toggle Floating Button)
+-- ===================================================
+local ToggleBtn = Instance.new("TextButton", ScreenGui)
+ToggleBtn.Name = "ToggleMenuBtn"
+ToggleBtn.Size = UDim2.new(0, 50, 0, 50)
+ToggleBtn.Position = UDim2.new(0.02, 0, 0.15, 0)
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
+ToggleBtn.Text = "🌀"
+ToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleBtn.TextSize = 22
+ToggleBtn.Active = true
+ToggleBtn.Draggable = true
+
+local ToggleCorner = Instance.new("UICorner", ToggleBtn)
+ToggleCorner.CornerRadius = UDim.new(1, 0)
+
+local isOpen = true
+
+-- ===================================================
+-- 📱 ฝั่งซ้าย (Left Side) : สคริปต์ความเร็ว (ลากย้ายได้)
 -- ===================================================
 local LeftFrame = Instance.new("Frame", ScreenGui)
 LeftFrame.Name = "SpeedHub_Left"
-LeftFrame.Size = UDim2.new(0, 220, 0, 155)
-LeftFrame.Position = UDim2.new(0.03, 0, 0.35, 0)
+LeftFrame.Size = UDim2.new(0, 260, 0, 190)
+LeftFrame.Position = UDim2.new(0.02, 0, 0.3, 0)
 LeftFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
 LeftFrame.Active = true
 LeftFrame.Draggable = true
 
 local LeftCorner = Instance.new("UICorner", LeftFrame)
-LeftCorner.CornerRadius = UDim.new(0, 8)
+LeftCorner.CornerRadius = UDim.new(0, 10)
+
+local LeftTitle = Instance.new("TextLabel", LeftFrame)
+LeftTitle.Size = UDim2.new(1, 0, 0, 40)
+LeftTitle.BackgroundColor3 = Color3.fromRGB(35, 35, 50)
+LeftTitle.Text = "⚡ SPEED CONTROL"
+LeftTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+LeftTitle.TextSize = 16
+LeftTitle.Font = Enum.Font.SourceSansBold
+
+local LeftTitleCorner = Instance.new("UICorner", LeftTitle)
+LeftTitleCorner.CornerRadius = UDim.new(0, 10)
 
 local b = Instance.new("TextButton", LeftFrame)
-b.Size = UDim2.new(1, 0, 0, 35)
+b.Size = UDim2.new(1, -24, 0, 45)
+b.Position = UDim2.new(0, 12, 0, 52)
 b.Text = "ความเร็ว: ปิด"
 b.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
 b.TextColor3 = Color3.fromRGB(255, 255, 255)
 b.Font = Enum.Font.SourceSansBold
-b.TextSize = 15
+b.TextSize = 18
 
 local bCorner = Instance.new("UICorner", b)
-bCorner.CornerRadius = UDim.new(0, 6)
+bCorner.CornerRadius = UDim.new(0, 8)
 
 local t = Instance.new("TextBox", LeftFrame)
-t.Position = UDim2.new(0, 10, 0, 45)
-t.Size = UDim2.new(1, -20, 0, 35)
+t.Position = UDim2.new(0, 12, 0, 110)
+t.Size = UDim2.new(1, -24, 0, 45)
 t.Text = "32"
 t.BackgroundColor3 = Color3.fromRGB(15, 15, 22)
 t.TextColor3 = Color3.fromRGB(255, 255, 255)
-t.Font = Enum.Font.SourceSans
-t.TextSize = 16
+t.Font = Enum.Font.SourceSansBold
+t.TextSize = 20
 
 local tCorner = Instance.new("UICorner", t)
-tCorner.CornerRadius = UDim.new(0, 6)
+tCorner.CornerRadius = UDim.new(0, 8)
 
 local on = false
 b.MouseButton1Click:Connect(function()
@@ -67,51 +98,51 @@ end)
 
 
 -- ===================================================
--- 📱 ฝั่งขวา (Right Side) : Script Loader Hub
+-- 📱 ฝั่งขวา (Right Side) : Script Loader (ลากย้ายได้)
 -- ===================================================
 local RightFrame = Instance.new("Frame", ScreenGui)
 RightFrame.Name = "LoaderHub_Right"
-RightFrame.Size = UDim2.new(0, 240, 0, 380)
-RightFrame.Position = UDim2.new(0.97, -240, 0.35, 0)
+RightFrame.Size = UDim2.new(0, 290, 0, 420)
+RightFrame.Position = UDim2.new(0.98, -290, 0.25, 0)
 RightFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 28)
 RightFrame.Active = true
 RightFrame.Draggable = true
 
 local RightCorner = Instance.new("UICorner", RightFrame)
-RightCorner.CornerRadius = UDim.new(0, 8)
+RightCorner.CornerRadius = UDim.new(0, 10)
 
 local RightTitle = Instance.new("TextLabel", RightFrame)
-RightTitle.Size = UDim2.new(1, 0, 0, 32)
+RightTitle.Size = UDim2.new(1, 0, 0, 40)
 RightTitle.BackgroundColor3 = Color3.fromRGB(30, 30, 42)
-RightTitle.Text = "🚀 SCRIPT LOADER"
+RightTitle.Text = "🚀 SCRIPT LOADER (ALL SCRIPTS)"
 RightTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-RightTitle.TextSize = 14
+RightTitle.TextSize = 16
 RightTitle.Font = Enum.Font.SourceSansBold
 
 local RightTitleCorner = Instance.new("UICorner", RightTitle)
-RightTitleCorner.CornerRadius = UDim.new(0, 8)
+RightTitleCorner.CornerRadius = UDim.new(0, 10)
 
 local Scroll = Instance.new("ScrollingFrame", RightFrame)
-Scroll.Size = UDim2.new(1, -16, 1, -40)
-Scroll.Position = UDim2.new(0, 8, 0, 36)
+Scroll.Size = UDim2.new(1, -16, 1, -50)
+Scroll.Position = UDim2.new(0, 8, 0, 45)
 Scroll.BackgroundTransparency = 1
-Scroll.ScrollBarThickness = 4
+Scroll.ScrollBarThickness = 6
 
 local Layout = Instance.new("UIListLayout", Scroll)
 Layout.SortOrder = Enum.SortOrder.LayoutOrder
-Layout.Padding = UDim.new(0, 6)
+Layout.Padding = UDim.new(0, 8)
 
 local function createScriptBtn(btnText, scriptUrl, btnColor)
     local Btn = Instance.new("TextButton", Scroll)
-    Btn.Size = UDim2.new(1, 0, 0, 32)
+    Btn.Size = UDim2.new(1, 0, 0, 40)
     Btn.BackgroundColor3 = btnColor or Color3.fromRGB(40, 40, 55)
     Btn.Text = btnText
     Btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Btn.TextSize = 12
+    Btn.TextSize = 14
     Btn.Font = Enum.Font.SourceSansBold
 
     local Corner = Instance.new("UICorner", Btn)
-    Corner.CornerRadius = UDim.new(0, 6)
+    Corner.CornerRadius = UDim.new(0, 8)
 
     Btn.MouseButton1Click:Connect(function()
         pcall(function()
@@ -120,7 +151,9 @@ local function createScriptBtn(btnText, scriptUrl, btnColor)
     end)
 end
 
--- รายการปุ่มสคริปต์ฝั่งขวา (เพิ่ม Steal An Egg แล้ว)
+-- รายการปุ่มสคริปต์ทั้งหมด (รวมสคริปต์ใหม่ที่คุณส่งมาล่าสุด)
+createScriptBtn("🛠️ Amendment Script", "https://gist.githubusercontent.com/khankhihma-max/7edd6746170ad31db07256cca72bbe70/raw/e0988bc2ba40107a0f9d4756ada6b1b8c83f814c/Amendment.lua", Color3.fromRGB(100, 60, 160))
+createScriptBtn("🇹🇭 RUNLUA (RTA-THAI)", "https://raw.githubusercontent.com/RUNLUA-HUBS/RUNLUA-HUBS/refs/heads/main/Scrip-MAP/RTA-THAI/kr.lua", Color3.fromRGB(40, 140, 100))
 createScriptBtn("🥚 Steal An Egg (Autofarm)", "https://scriptblox.com/raw/Steal-An-Egg-Instant-Steal-Fastest-autofarm-Everything-autofarm-223695", Color3.fromRGB(220, 150, 40))
 createScriptBtn("⌨️ +1 Speed Keyboard Escape", "https://scriptblox.com/raw/+1-Speed-Keyboard-Escape-or-Candy-and-Chocolate-Auto-Run-Auto-Win-Anti-Kick-Full-Autofarm-230390", Color3.fromRGB(200, 80, 50))
 createScriptBtn("🔪 MM2 (Moondiety Keyless)", "https://scriptblox.com/raw/Murder-Mystery-2-KEYLESS-InstaWin-AutoFarm-Kill-all-XRay-nd-more-by-Moondiety-48644", Color3.fromRGB(150, 40, 150))
@@ -137,3 +170,13 @@ createScriptBtn("🔪 MM2 Farm (KRYVEX)", "https://raw.githubusercontent.com/kom
 createScriptBtn("🔥 VENYX HUB (แปลไทย)", "https://raw.githubusercontent.com/bafuck48-sketch/VENYX-Hub/main/VENYXHUB.lua", Color3.fromRGB(200, 140, 30))
 
 Scroll.CanvasSize = UDim2.new(0, 0, 0, Layout.AbsoluteContentSize.Y + 10)
+
+-- ===================================================
+-- ⚙️ ระบบกดที่ไอคอนเพื่อ เปิด / ปิด หน้าต่างเมนู
+-- ===================================================
+ToggleBtn.MouseButton1Click:Connect(function()
+    isOpen = not isOpen
+    LeftFrame.Visible = isOpen
+    RightFrame.Visible = isOpen
+    ToggleBtn.BackgroundColor3 = isOpen and Color3.fromRGB(40, 40, 55) or Color3.fromRGB(180, 50, 50)
+end)
