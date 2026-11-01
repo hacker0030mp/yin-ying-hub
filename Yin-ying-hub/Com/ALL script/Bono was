@@ -1,0 +1,336 @@
+-- [[ ☯️ Yin-Yang Mobile Split-UI Hub (Official Edition) ☯️ ]]
+-- พัฒนาโดยค่าย Yin-Yang (หยินหยาง)
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local CoreGui = game:GetService("CoreGui")
+local TweenService = game:GetService("TweenService")
+local HttpService = game:GetService("HttpService")
+
+local LocalPlayer = Players.LocalPlayer
+local parentGui = (gethui and gethui()) or CoreGui
+local env = (getgenv and getgenv()) or _G
+
+if env.YinYangUnload then
+    pcall(env.YinYangUnload)
+end
+
+pcall(function()
+    for _, root in ipairs({CoreGui, parentGui}) do
+        local old = root:FindFirstChild("YinYangDomainWinUI")
+        if old then
+            old:Destroy()
+        end
+    end
+end)
+
+local conns = {}
+
+local function connect(signal, fn)
+    local c = signal:Connect(fn)
+    table.insert(conns, c)
+    return c
+end
+
+-- 🎨 ธีมแบบ WinUI ทันสมัย (โทนหยินหยาง ม่วงเข้ม-ดำ)
+local Theme = {
+    MainBg = Color3.fromRGB(20, 20, 28),
+    PanelBg = Color3.fromRGB(28, 28, 38),
+    CardBg = Color3.fromRGB(36, 36, 48),
+    Accent = Color3.fromRGB(130, 90, 255),
+    Text = Color3.fromRGB(245, 245, 245),
+    SubText = Color3.fromRGB(170, 170, 170),
+    Border = Color3.fromRGB(55, 55, 70),
+    Green = Color3.fromRGB(50, 200, 100),
+    Red = Color3.fromRGB(200, 60, 60),
+}
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "YinYangDomainWinUI"
+ScreenGui.IgnoreGuiInset = true
+ScreenGui.ResetOnSpawn = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.Parent = parentGui
+
+-- 🛡️ Share / Record Protect State
+local ShareProtectEnabled = false
+local ShareProtectHotkey = Enum.KeyCode.RightShift
+
+local function SetShareProtect(enabled)
+    ShareProtectEnabled = enabled
+    if ScreenGui then
+        ScreenGui.Enabled = not enabled
+    end
+end
+
+connect(UserInputService.InputBegan, function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == ShareProtectHotkey then
+        SetShareProtect(not ShareProtectEnabled)
+    end
+end)
+
+env.YinYangUnload = function()
+    for _, c in ipairs(conns) do
+        pcall(function() c:Disconnect() end)
+    end
+    if ScreenGui then ScreenGui:Destroy() end
+end
+
+-- ===================================================
+-- 🔘 ปุ่มไอคอนลอย (Floating Toggle Button)
+-- ===================================================
+local ToggleBtn = Instance.new("TextButton", ScreenGui)
+ToggleBtn.Name = "ToggleMenuBtn"
+ToggleBtn.Size = UDim2.new(0, 48, 0, 48)
+ToggleBtn.Position = UDim2.new(0.02, 0, 0.15, 0)
+ToggleBtn.BackgroundColor3 = Theme.MainBg
+ToggleBtn.Text = "☯️"
+ToggleBtn.TextColor3 = Theme.Text
+ToggleBtn.TextSize = 20
+ToggleBtn.Active = true
+ToggleBtn.Draggable = true
+
+Instance.new("UICorner", ToggleBtn).CornerRadius = UDim.new(1, 0)
+local toggleStroke = Instance.new("UIStroke", ToggleBtn)
+toggleStroke.Color = Theme.Border
+toggleStroke.Thickness = 1.5
+
+-- ===================================================
+-- 🪟 หน้าต่างหลัก (WinUI Style Container - 2 Columns)
+-- ===================================================
+local MainFrame = Instance.new("Frame", ScreenGui)
+MainFrame.Name = "WinUIContainer"
+MainFrame.Size = UDim2.new(0, 620, 0, 440)
+MainFrame.Position = UDim2.new(0.5, -310, 0.5, -220)
+MainFrame.BackgroundColor3 = Theme.MainBg
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.Visible = true
+
+Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
+local mainStroke = Instance.new("UIStroke", MainFrame)
+mainStroke.Color = Theme.Border
+mainStroke.Thickness = 1.5
+
+-- แถบหัวเรื่อง (TitleBar)
+local TitleBar = Instance.new("Frame", MainFrame)
+TitleBar.Size = UDim2.new(1, 0, 0, 38)
+TitleBar.BackgroundColor3 = Theme.PanelBg
+Instance.new("UICorner", TitleBar).CornerRadius = UDim.new(0, 10)
+
+local fixCorner = Instance.new("Frame", TitleBar)
+fixCorner.Size = UDim2.new(1, 0, 0, 10)
+fixCorner.Position = UDim2.new(0, 0, 1, -10)
+fixCorner.BackgroundColor3 = Theme.PanelBg
+fixCorner.BorderSizePixel = 0
+
+local TitleText = Instance.new("TextLabel", TitleBar)
+TitleText.Size = UDim2.new(0.8, 0, 1, 0)
+TitleText.Position = UDim2.new(0, 14, 0, 0)
+TitleText.BackgroundTransparency = 1
+TitleText.Text = "☯️ YIN-YANG HUB v3.4 [WinUI Edition]"
+TitleText.TextColor3 = Theme.Text
+TitleText.Font = Enum.Font.GothamBold
+TitleText.TextSize = 13
+TitleText.TextXAlignment = Enum.TextXAlignment.Left
+
+local CloseBtn = Instance.new("TextButton", TitleBar)
+CloseBtn.Size = UDim2.new(0, 26, 0, 26)
+CloseBtn.Position = UDim2.new(1, -34, 0.5, -13)
+CloseBtn.BackgroundColor3 = Theme.CardBg
+CloseBtn.Text = "✕"
+CloseBtn.TextColor3 = Theme.SubText
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.TextSize = 12
+Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 6)
+
+CloseBtn.MouseButton1Click:Connect(function()
+    MainFrame.Visible = false
+end)
+
+ToggleBtn.MouseButton1Click:Connect(function()
+    MainFrame.Visible = not MainFrame.Visible
+end)
+
+-- ===================================================
+-- 📦 โครงสร้างแบ่ง 2 ฝั่ง (Left Panel & Right Panel)
+-- ===================================================
+
+-- ฝั่งซ้าย: Speed Control & Misc Utilities
+local LeftPanel = Instance.new("ScrollingFrame", MainFrame)
+LeftPanel.Size = UDim2.new(0.41, -12, 1, -54)
+LeftPanel.Position = UDim2.new(0, 10, 0, 44)
+LeftPanel.BackgroundTransparency = 1
+LeftPanel.ScrollBarThickness = 3
+LeftPanel.ScrollBarImageColor3 = Theme.Border
+LeftPanel.CanvasSize = UDim2.new(0, 0, 0, 0)
+LeftPanel.AutomaticCanvasSize = Enum.AutomaticSize.Y
+
+local leftLayout = Instance.new("UIListLayout", LeftPanel)
+leftLayout.Padding = UDim.new(0, 10)
+leftLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+leftLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+-- ฝั่งขวา: Script Loader Hub (รวม 22 สคริปต์)
+local RightPanel = Instance.new("Frame", MainFrame)
+RightPanel.Size = UDim2.new(0.57, -10, 1, -54)
+RightPanel.Position = UDim2.new(0.43, 6, 0, 44)
+RightPanel.BackgroundColor3 = Theme.PanelBg
+Instance.new("UICorner", RightPanel).CornerRadius = UDim.new(0, 8)
+
+local RightTitle = Instance.new("TextLabel", RightPanel)
+RightTitle.Size = UDim2.new(1, 0, 0, 32)
+RightTitle.Position = UDim2.new(0, 12, 0, 0)
+RightTitle.BackgroundTransparency = 1
+RightTitle.Text = "🚀 SCRIPT LOADER (22 SCRIPTS)"
+RightTitle.TextColor3 = Theme.Accent
+RightTitle.Font = Enum.Font.GothamBold
+RightTitle.TextSize = 12
+RightTitle.TextXAlignment = Enum.TextXAlignment.Left
+
+local ScrollScripts = Instance.new("ScrollingFrame", RightPanel)
+ScrollScripts.Size = UDim2.new(1, -12, 1, -38)
+ScrollScripts.Position = UDim2.new(0, 6, 0, 34)
+ScrollScripts.BackgroundTransparency = 1
+ScrollScripts.ScrollBarThickness = 4
+ScrollScripts.ScrollBarImageColor3 = Theme.Border
+ScrollScripts.CanvasSize = UDim2.new(0, 0, 0, 0)
+ScrollScripts.AutomaticCanvasSize = Enum.AutomaticSize.Y
+
+local scriptLayout = Instance.new("UIListLayout", ScrollScripts)
+scriptLayout.Padding = UDim.new(0, 6)
+scriptLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+scriptLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+-- ===================================================
+-- ⚡ สร้างฟังก์ชันในฝั่งซ้าย (Speed Control & Utility)
+-- ===================================================
+
+local function createCard(parent, titleText)
+    local card = Instance.new("Frame", parent)
+    card.Size = UDim2.new(1, -4, 0, 110)
+    card.BackgroundColor3 = Theme.PanelBg
+    Instance.new("UICorner", card).CornerRadius = UDim.new(0, 8)
+    
+    local title = Instance.new("TextLabel", card)
+    title.Size = UDim2.new(1, -16, 0, 30)
+    title.Position = UDim2.new(0, 10, 0, 4)
+    title.BackgroundTransparency = 1
+    title.Text = titleText
+    title.TextColor3 = Theme.Text
+    title.Font = Enum.Font.GothamBold
+    title.TextSize = 12
+    title.TextXAlignment = Enum.TextXAlignment.Left
+    
+    return card
+end
+
+-- 1. การ์ดควบคุมความเร็ว (Speed Control)
+local SpeedCard = createCard(LeftPanel, "⚡ Speed Control")
+SpeedCard.Size = UDim2.new(1, -4, 0, 120)
+
+local speedToggleBtn = Instance.new("TextButton", SpeedCard)
+speedToggleBtn.Size = UDim2.new(1, -16, 0, 34)
+speedToggleBtn.Position = UDim2.new(0, 8, 0, 36)
+speedToggleBtn.BackgroundColor3 = Theme.Red
+speedToggleBtn.Text = "🏃 วิ่งไว: ปิด"
+speedToggleBtn.TextColor3 = Theme.Text
+speedToggleBtn.Font = Enum.Font.GothamBold
+speedToggleBtn.TextSize = 12
+Instance.new("UICorner", speedToggleBtn).CornerRadius = UDim.new(0, 6)
+
+local speedBox = Instance.new("TextBox", SpeedCard)
+speedBox.Size = UDim2.new(1, -16, 0, 34)
+speedBox.Position = UDim2.new(0, 8, 0, 76)
+speedBox.BackgroundColor3 = Theme.CardBg
+speedBox.Text = "32"
+speedBox.TextColor3 = Theme.Text
+speedBox.Font = Enum.Font.GothamBold
+speedBox.TextSize = 14
+Instance.new("UICorner", speedBox).CornerRadius = UDim.new(0, 6)
+
+local speedActive = false
+speedToggleBtn.MouseButton1Click:Connect(function()
+    speedActive = not speedActive
+    speedToggleBtn.Text = speedActive and "🏃 วิ่งไว: เปิด" or "🏃 วิ่งไว: ปิด"
+    speedToggleBtn.BackgroundColor3 = speedActive and Theme.Green or Theme.Red
+    
+    local char = LocalPlayer.Character
+    local hum = char and char:FindFirstChildOfClass("Humanoid")
+    if hum then
+        hum.WalkSpeed = speedActive and (tonumber(speedBox.Text) or 32) or 16
+    end
+end)
+
+speedBox.FocusLost:Connect(function()
+    if speedActive then
+        local char = LocalPlayer.Character
+        local hum = char and char:FindFirstChildOfClass("Humanoid")
+        if hum then
+            hum.WalkSpeed = tonumber(speedBox.Text) or 32
+        end
+    end
+end)
+
+-- 2. การ์ดข้อมูลผู้เล่นเบื้องต้น (Player Info)
+local InfoCard = createCard(LeftPanel, "👤 Player Info")
+InfoCard.Size = UDim2.new(1, -4, 0, 95)
+
+local infoLabel = Instance.new("TextLabel", InfoCard)
+infoLabel.Size = UDim2.new(1, -16, 0, 50)
+infoLabel.Position = UDim2.new(0, 8, 0, 35)
+infoLabel.BackgroundTransparency = 1
+infoLabel.Text = "Name: " .. LocalPlayer.Name .. "\nDisplay: " .. LocalPlayer.DisplayName
+infoLabel.TextColor3 = Theme.SubText
+infoLabel.Font = Enum.Font.GothamMedium
+infoLabel.TextSize = 11
+infoLabel.TextXAlignment = Enum.TextXAlignment.Left
+infoLabel.TextYAlignment = Enum.TextYAlignment.Top
+
+-- ===================================================
+-- 🚀 เพิ่มปุ่มสคริปต์ทั้งหมด 22 รายการลงใน Script Loader ฝั่งขวา
+-- ===================================================
+local function addScriptButton(btnText, scriptUrl, btnColor)
+    local btn = Instance.new("TextButton", ScrollScripts)
+    btn.Size = UDim2.new(1, -8, 0, 36)
+    btn.BackgroundColor3 = btnColor or Theme.CardBg
+    btn.Text = btnText
+    btn.TextColor3 = Theme.Text
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 11
+    
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+    
+    btn.MouseButton1Click:Connect(function()
+        pcall(function()
+            loadstring(game:HttpGet(scriptUrl))()
+        end)
+    end)
+end
+
+-- รายการสคริปต์ทั้งหมด 22 รายการ
+addScriptButton("⚔️ Blade Ball (APICHAT)", "https://raw.githubusercontent.com/APICHAT-DOMAIN/APICHAT-DOMAIN/main/BLADE%20BALL.lua?nocache="..os.time(), Color3.fromRGB(50, 120, 200))
+addScriptButton("🗺️ Tumap Script (APICHAT)", "https://raw.githubusercontent.com/APICHAT-DOMAIN/APICHAT-DOMAIN/main/tumap.lua?nocache="..os.time(), Color3.fromRGB(80, 180, 100))
+addScriptButton("📄 README Script (APICHAT)", "https://raw.githubusercontent.com/APICHAT-DOMAIN/APICHAT-DOMAIN/main/README.md?nocache="..os.time(), Color3.fromRGB(150, 100, 200))
+addScriptButton("🔑 ZeroPoint (KeySystem)", "https://raw.githubusercontent.com/JaxRol/ZeroPoint/refs/heads/main/KeySystem", Color3.fromRGB(70, 130, 180))
+addScriptButton("🛡️ Luarmor Loader", "https://api.luarmor.net/files/v3/loaders/2529a5f9dfddd5523ca4e22f21cceffa.lua", Color3.fromRGB(150, 70, 180))
+addScriptButton("⭐ TraxHub", "https://raw.githubusercontent.com/BestScript-netizen/SABScripts/refs/heads/main/TraxHub", Color3.fromRGB(180, 100, 40))
+addScriptButton("🛠️ Amendment Script", "https://gist.githubusercontent.com/khankhihma-max/7edd6746170ad31db07256cca72bbe70/raw/e0988bc2ba40107a0f9d4756ada6b1b8c83f814c/Amendment.lua", Color3.fromRGB(100, 60, 160))
+addScriptButton("🇹🇭 RUNLUA (RTA-THAI)", "https://raw.githubusercontent.com/RUNLUA-HUBS/RUNLUA-HUBS/refs/heads/main/Scrip-MAP/RTA-THAI/kr.lua", Color3.fromRGB(40, 140, 100))
+addScriptButton("🥚 Steal An Egg (Autofarm)", "https://scriptblox.com/raw/Steal-An-Egg-Instant-Steal-Fastest-autofarm-Everything-autofarm-223695", Color3.fromRGB(220, 150, 40))
+addScriptButton("⌨️ +1 Speed Keyboard Escape", "https://scriptblox.com/raw/+1-Speed-Keyboard-Escape-or-Candy-and-Chocolate-Auto-Run-Auto-Win-Anti-Kick-Full-Autofarm-230390", Color3.fromRGB(200, 80, 50))
+addScriptButton("🔪 MM2 (Moondiety Keyless)", "https://scriptblox.com/raw/Murder-Mystery-2-KEYLESS-InstaWin-AutoFarm-Kill-all-XRay-nd-more-by-Moondiety-48644", Color3.fromRGB(150, 40, 150))
+addScriptButton("🎣 Fisch (Blackhub)", "https://scriptblox.com/raw/Fisch-Blackhub-Best-Undetected-Script-53591", Color3.fromRGB(40, 110, 180))
+addScriptButton("🎯 RIVALS (Korax Hub)", "https://scriptblox.com/raw/RIVALS-Korax-226484", Color3.fromRGB(180, 50, 50))
+addScriptButton("🍌 Blox Fruits (No Lag / Keyless)", "https://scriptblox.com/raw/Blox-Fruits-No-Lag-Hub-or-Keyless-234045", Color3.fromRGB(50, 150, 50))
+addScriptButton("🌲 99 Nights (Lunar Hub)", "https://scriptblox.com/raw/99-Nights-in-the-Forest-Lunar-Hub-or-Auto-Days-Auto-Chop-Tree-Auto-Kill-Bunny-MORE-233729", Color3.fromRGB(70, 130, 180))
+addScriptButton("⚡ Evade Updated", "https://scriptblox.com/raw/UPDATE-Evade-Evade-UPDATED-5514", Color3.fromRGB(180, 70, 50))
+addScriptButton("🌊 Evade ReefHub (ESP/Win)", "https://scriptblox.com/raw/HLWN-Evade-ReefHub-Nextbots-ESP-Auto-Win-Teleport-Set-FOV-and-More-233180", Color3.fromRGB(50, 100, 180))
+addScriptButton("🌐 Kant Hub (Universal)", "https://scriptblox.com/raw/Universal-Script-Kant-Hub-234038", Color3.fromRGB(120, 50, 180))
+addScriptButton("☯️ Evade Yin-Yang Hub", "https://scriptblox.com/raw/Evade-Yin-Yang-New-227130", Color3.fromRGB(100, 100, 120))
+addScriptButton("🏃 Run Evade (KRYVEX)", "https://raw.githubusercontent.com/komayma273-cyber/KRYVEX-Hub-K/refs/heads/main/Run%20Evade", Color3.fromRGB(160, 60, 60))
+addScriptButton("🔪 MM2 Farm (KRYVEX)", "https://raw.githubusercontent.com/komayma273-cyber/Script-Evade/refs/heads/main/KRYVEX%20Hub%20MM2%20Farm", Color3.fromRGB(150, 40, 150))
+addScriptButton("🔥 VENYX HUB (แปลไทย)", "https://raw.githubusercontent.com/bafuck48-sketch/VENYX-Hub/main/VENYXHUB.lua", Color3.fromRGB(200, 140, 30))
+
+print("☯️ Yin-Yang HUB v3.4 Loaded Successfully!")
