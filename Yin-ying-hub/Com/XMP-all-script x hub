@@ -1,4 +1,4 @@
--- [[ RTS Mobile Split-UI Hub (Final Integration) ]]
+-- [[ RTS Mobile Split-UI Hub (Final Complete Version with APICHAT Scripts) ]]
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
@@ -151,7 +151,12 @@ local function createScriptBtn(btnText, scriptUrl, btnColor)
     end)
 end
 
--- รายการปุ่มสคริปต์ทั้งหมด (รวม 3 ลิงก์ล่าสุดที่คุณส่งมา)
+-- รายการปุ่มสคริปต์ทั้งหมด (รวม 3 ลิงก์ล่าสุดจาก APICHAT)
+createScriptBtn("⚔️ Blade Ball (APICHAT)", "https://raw.githubusercontent.com/APICHAT-DOMAIN/APICHAT-DOMAIN/main/BLADE%20BALL.lua?nocache="..os.time(), Color3.fromRGB(50, 120, 200))
+createScriptBtn("🗺️ Tumap Script (APICHAT)", "https://raw.githubusercontent.com/APICHAT-DOMAIN/APICHAT-DOMAIN/main/tumap.lua?nocache="..os.time(), Color3.fromRGB(80, 180, 100))
+createScriptBtn("📄 README Script (APICHAT)", "https://raw.githubusercontent.com/APICHAT-DOMAIN/APICHAT-DOMAIN/main/README.md?nocache="..os.time(), Color3.fromRGB(150, 100, 200))
+
+-- รายการสคริปต์เดิมทั้งหมด
 createScriptBtn("🔑 ZeroPoint (KeySystem)", "https://raw.githubusercontent.com/JaxRol/ZeroPoint/refs/heads/main/KeySystem", Color3.fromRGB(70, 130, 180))
 createScriptBtn("🛡️ Luarmor Loader", "https://api.luarmor.net/files/v3/loaders/2529a5f9dfddd5523ca4e22f21cceffa.lua", Color3.fromRGB(150, 70, 180))
 createScriptBtn("⭐ TraxHub", "https://raw.githubusercontent.com/BestScript-netizen/SABScripts/refs/heads/main/TraxHub", Color3.fromRGB(180, 100, 40))
