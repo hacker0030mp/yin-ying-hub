@@ -1,4 +1,4 @@
--- [[ RTS Mobile Split-UI Hub (Full Update with New Scripts) ]]
+-- [[ RTS Mobile Split-UI Hub (Final Integration) ]]
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
@@ -151,7 +151,10 @@ local function createScriptBtn(btnText, scriptUrl, btnColor)
     end)
 end
 
--- รายการปุ่มสคริปต์ทั้งหมด (รวมสคริปต์ใหม่ที่คุณส่งมาล่าสุด)
+-- รายการปุ่มสคริปต์ทั้งหมด (รวม 3 ลิงก์ล่าสุดที่คุณส่งมา)
+createScriptBtn("🔑 ZeroPoint (KeySystem)", "https://raw.githubusercontent.com/JaxRol/ZeroPoint/refs/heads/main/KeySystem", Color3.fromRGB(70, 130, 180))
+createScriptBtn("🛡️ Luarmor Loader", "https://api.luarmor.net/files/v3/loaders/2529a5f9dfddd5523ca4e22f21cceffa.lua", Color3.fromRGB(150, 70, 180))
+createScriptBtn("⭐ TraxHub", "https://raw.githubusercontent.com/BestScript-netizen/SABScripts/refs/heads/main/TraxHub", Color3.fromRGB(180, 100, 40))
 createScriptBtn("🛠️ Amendment Script", "https://gist.githubusercontent.com/khankhihma-max/7edd6746170ad31db07256cca72bbe70/raw/e0988bc2ba40107a0f9d4756ada6b1b8c83f814c/Amendment.lua", Color3.fromRGB(100, 60, 160))
 createScriptBtn("🇹🇭 RUNLUA (RTA-THAI)", "https://raw.githubusercontent.com/RUNLUA-HUBS/RUNLUA-HUBS/refs/heads/main/Scrip-MAP/RTA-THAI/kr.lua", Color3.fromRGB(40, 140, 100))
 createScriptBtn("🥚 Steal An Egg (Autofarm)", "https://scriptblox.com/raw/Steal-An-Egg-Instant-Steal-Fastest-autofarm-Everything-autofarm-223695", Color3.fromRGB(220, 150, 40))
