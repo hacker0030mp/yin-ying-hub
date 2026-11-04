@@ -1,18 +1,68 @@
 --[[========================================================
-    ☯️ YIN-YANG HUB (WindUI Edition) ☯️
+    ☯️ YIN-YANG HUB (WindUI Bilingual Edition) ☯️
     - พัฒนาโดยค่าย Yin-Yang (หยินหยาง)
-    - ดีไซน์ WindUI สวยงาม ทันสมัย
+    - รองรับระบบ 2 ภาษา (ไทย / English)
 ========================================================]]--
 
 local _version = "1.6.66"
 local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/download/" .. _version .. "/main.lua"))() 
 
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Stats = game:GetService("Stats")
 local LocalPlayer = Players.LocalPlayer
+
+-- ระบบแปลภาษา (Localization Dictionary)
+local CurrentLang = "TH" -- ค่าเริ่มต้นภาษาไทย
+
+local Loc = {
+    TH = {
+        WindowTitle = "☯️ หยินหยาง ฮับ | รวมสคริปต์อเนกประสงค์",
+        TabPlayer = "ผู้เล่นและระบบ",
+        TabLoader = "รายการสคริปต์",
+        TabSettings = "ตั้งค่าภาษา",
+        
+        SecAmendment = "สคริปต์เสริม (Amendment)",
+        BtnAmendment = "เปิดใช้งาน Amendment",
+        
+        SecInfo = "ข้อมูลผู้เล่น",
+        LabelName = "ชื่อผู้เล่น: ",
+        LabelDisplay = "ชื่อแสดง: ",
+        LabelTeam = "ค่ายผู้พัฒนา: Yin-Yang (หยินหยาง)",
+        
+        SecLang = "เปลี่ยนภาษา (Language)",
+        BtnToggleLang = "Switch to English (เปลี่ยนเป็นอังกฤษ)",
+        
+        Watermark = "☯️ ค่ายหยินหยาง [ทำงานอยู่]",
+    },
+    EN = {
+        WindowTitle = "☯️ Yin-Yang Hub | Universal Script Loader",
+        TabPlayer = "Player & Tools",
+        TabLoader = "Script Loader",
+        TabSettings = "Language Settings",
+        
+        SecAmendment = "Amendment Script",
+        BtnAmendment = "Launch Amendment",
+        
+        SecInfo = "Player Information",
+        LabelName = "Username: ",
+        LabelDisplay = "Display Name: ",
+        LabelTeam = "Developer Team: Yin-Yang",
+        
+        SecLang = "Language Settings",
+        BtnToggleLang = "เปลี่ยนเป็นภาษาไทย (Switch to Thai)",
+        
+        Watermark = "☯️ YIN-YANG TEAM [Active]",
+    }
+}
+
+local function tr(key)
+    return (Loc[CurrentLang] and Loc[CurrentLang][key]) or key
+end
 
 -- สร้างหน้าต่างหลัก (Window)
 local Window = WindUI:CreateWindow({
-    Title = "☯️ Yin-Yang Hub | Universal Script Loader",
+    Title = tr("WindowTitle"),
     Icon = "moon", 
     Author = "by Yin-Yang Team", 
 })
@@ -30,7 +80,69 @@ WindUI:AddTheme({
 })
 
 -- ===================================================
--- 💧 ลายน้ำขนาดใหญ่ (Watermark) มองเห็นง่ายเด่นชัด
+-- 📊 ระบบ Window Tag (FPS & Ping แสดงที่หัวหน้าต่าง)
+-- ===================================================
+local FPSTag = Window:Tag({
+    Title = "FPS: 0",
+    Color = Color3.fromRGB(100, 150, 255),
+})
+ 
+local lastUpdate = tick()
+local frameCount = 0
+ 
+RunService.RenderStepped:Connect(function()
+    frameCount = frameCount + 1
+    local now = tick()
+    
+    if now - lastUpdate >= 1 then
+        local fps = math.floor(frameCount / (now - lastUpdate))
+        FPSTag:SetTitle("FPS: " .. fps)
+        
+        if fps >= 50 then
+            FPSTag:SetColor(Color3.fromRGB(0, 255, 0))
+        elseif fps >= 30 then
+            FPSTag:SetColor(Color3.fromRGB(255, 200, 0))
+        else
+            FPSTag:SetColor(Color3.fromRGB(255, 0, 0))
+        end
+        
+        frameCount = 0
+        lastUpdate = now
+    end
+end)
+
+local PingTag = Window:Tag({
+    Title = "Ping: 0ms",
+    Color = Color3.fromRGB(100, 200, 255),
+})
+ 
+task.spawn(function()
+    while true do
+        local success, ping = pcall(function()
+            local pingValue = Stats.Network.ServerStatsItem["Data Ping"]:GetValue()
+            return math.floor(pingValue)
+        end)
+        
+        if success and ping then
+            PingTag:SetTitle("Ping: " .. ping .. "ms")
+            
+            if ping <= 50 then
+                PingTag:SetColor(Color3.fromRGB(0, 255, 0))
+            elseif ping <= 100 then
+                PingTag:SetColor(Color3.fromRGB(255, 200, 0))
+            elseif ping <= 200 then
+                PingTag:SetColor(Color3.fromRGB(255, 150, 0))
+            else
+                PingTag:SetColor(Color3.fromRGB(255, 0, 0))
+            end
+        end
+        
+        task.wait(2)
+    end
+end)
+
+-- ===================================================
+-- 💧 ลายน้ำแสดงคุณค่าและแบรนด์ค่าย (Watermark & Credits)
 -- ===================================================
 local WatermarkGui = Instance.new("ScreenGui")
 WatermarkGui.Name = "YinYangWatermark"
@@ -41,10 +153,10 @@ local WatermarkLabel = Instance.new("TextLabel", WatermarkGui)
 WatermarkLabel.Size = UDim2.new(0, 280, 0, 45)
 WatermarkLabel.Position = UDim2.new(0.02, 0, 0.02, 0)
 WatermarkLabel.BackgroundColor3 = Color3.fromRGB(20, 20, 28)
-WatermarkLabel.Text = "☯️ YIN-YANG HUB [Active]"
+WatermarkLabel.Text = tr("Watermark")
 WatermarkLabel.TextColor3 = Color3.fromRGB(130, 90, 255)
 WatermarkLabel.Font = Enum.Font.GothamBold
-WatermarkLabel.TextSize = 16
+WatermarkLabel.TextSize = 15
 WatermarkLabel.Active = true
 WatermarkLabel.Draggable = true
 
@@ -58,16 +170,16 @@ WmStroke.Thickness = 2
 -- 📑 แท็บที่ 1: Player & Amendment Script
 -- ===================================================
 local SpeedTab = Window:Tab({
-    Title = "Player & Speed",
+    Title = tr("TabPlayer"),
     Icon = "zap",
 })
 
 local ScriptSection = SpeedTab:Section({
-    Title = "Amendment Script"
+    Title = tr("SecAmendment")
 })
 
 ScriptSection:Button({
-    Title = "Amendment",
+    Title = tr("BtnAmendment"),
     Callback = function()
         pcall(function()
             loadstring(game:HttpGet("https://gist.githubusercontent.com/khankhihma-max/7edd6746170ad31db07256cca72bbe70/raw/e0988bc2ba40107a0f9d4756ada6b1b8c83f814c/Amendment.lua"))()
@@ -76,24 +188,29 @@ ScriptSection:Button({
 })
 
 local InfoSection = SpeedTab:Section({
-    Title = "Player Information"
+    Title = tr("SecInfo")
 })
 
 InfoSection:Button({ 
-    Title = "ชื่อผู้เล่น: " .. LocalPlayer.Name,
+    Title = tr("LabelName") .. LocalPlayer.Name,
     Callback = function() end 
 })
 
 InfoSection:Button({ 
-    Title = "ชื่อแสดง: " .. LocalPlayer.DisplayName,
+    Title = tr("LabelDisplay") .. LocalPlayer.DisplayName,
+    Callback = function() end 
+})
+
+InfoSection:Button({ 
+    Title = tr("LabelTeam"),
     Callback = function() end 
 })
 
 -- ===================================================
--- 📑 แท็บที่ 2: Script Loader (รวมสคริปต์ทั้งหมด ไร้อิโมจิที่ปุ่ม)
+-- 📑 แท็บที่ 2: Script Loader (รวมสคริปต์ทั้งหมด)
 -- ===================================================
 local ScriptTab = Window:Tab({
-    Title = "Script Loader",
+    Title = tr("TabLoader"),
     Icon = "code",
 })
 
@@ -132,4 +249,33 @@ addScript("Game Hubs: Evade", "Evade Yin-Yang Hub", "https://scriptblox.com/raw/
 addScript("Game Hubs: MM2", "MM2 Farm KRYVEX", "https://raw.githubusercontent.com/komayma273-cyber/Script-Evade/refs/heads/main/KRYVEX%20Hub%20MM2%20Farm")
 addScript("Game Hubs: Venyx", "VENYX HUB แปลไทย", "https://raw.githubusercontent.com/bafuck48-sketch/VENYX-Hub/main/VENYXHUB.lua")
 
-print("☯️ Yin-Yang Hub (WindUI) Loaded Successfully!")
+-- ===================================================
+-- 📑 แท็บที่ 3: Settings (ตั้งค่าภาษา)
+-- ===================================================
+local SettingsTab = Window:Tab({
+    Title = tr("TabSettings"),
+    Icon = "settings",
+})
+
+local LangSection = SettingsTab:Section({
+    Title = tr("SecLang")
+})
+
+LangSection:Button({
+    Title = tr("BtnToggleLang"),
+    Callback = function()
+        if CurrentLang == "TH" then
+            CurrentLang = "EN"
+        else
+            CurrentLang = "TH"
+        end
+        -- แจ้งเตือนเมื่อเปลี่ยนภาษา
+        WindUI:Notify({
+            Title = "Language Changed",
+            Content = "Please re-execute script to apply language to all sections.",
+            Duration = 3
+        })
+    end
+})
+
+print("☯️ Yin-Yang Hub (Bilingual Edition) Loaded Successfully!")
