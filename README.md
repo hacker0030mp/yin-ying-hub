@@ -1,6 +1,6 @@
-# HTTPS=[https://github-lick-code.netlify.app]
-v1.0.0
-## ลิ้งค์/URL=[https://github-lick-code.netlify.app]
+# HTTPS=[https://lock-code-hub-net.netlify.app]
+v1.4.2713
+## ลิ้งค์/URL=[https://lock-code-hub-net.netlify.app]
 
 อธิบายแบบง่าย ๆ ทีละส่วน:
 
