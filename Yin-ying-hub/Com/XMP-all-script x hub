@@ -1,190 +1,135 @@
--- [[ RTS Mobile Split-UI Hub (Final Complete Version with APICHAT Scripts) ]]
+--[[========================================================
+    ☯️ YIN-YANG HUB (WindUI Edition) ☯️
+    - พัฒนาโดยค่าย Yin-Yang (หยินหยาง)
+    - ดีไซน์ WindUI สวยงาม ทันสมัย
+========================================================]]--
+
+local _version = "1.6.66"
+local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/download/" .. _version .. "/main.lua"))() 
+
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "SplitMobileHub"
-ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
-ScreenGui.ResetOnSpawn = false
+-- สร้างหน้าต่างหลัก (Window)
+local Window = WindUI:CreateWindow({
+    Title = "☯️ Yin-Yang Hub | Universal Script Loader",
+    Icon = "moon", 
+    Author = "by Yin-Yang Team", 
+})
+
+-- กำหนดธีมสี (Dark & Purple Theme สไตล์หยินหยาง)
+WindUI:AddTheme({
+    Name = "YinYangDark",
+    Accent = Color3.fromHex("#825AFF"),
+    Background = Color3.fromHex("#14141C"),
+    Outline = Color3.fromHex("#2D2D3D"),
+    Text = Color3.fromHex("#F5F5F5"),
+    Placeholder = Color3.fromHex("#7A7A7A"),
+    Button = Color3.fromHex("#262632"),
+    Icon = Color3.fromHex("#A1A1AA"),
+})
 
 -- ===================================================
--- 🔘 ปุ่มไอคอนลอยเปิด/ปิดหน้าต่าง (Toggle Floating Button)
+-- 💧 ลายน้ำขนาดใหญ่ (Watermark) มองเห็นง่ายเด่นชัด
 -- ===================================================
-local ToggleBtn = Instance.new("TextButton", ScreenGui)
-ToggleBtn.Name = "ToggleMenuBtn"
-ToggleBtn.Size = UDim2.new(0, 50, 0, 50)
-ToggleBtn.Position = UDim2.new(0.02, 0, 0.15, 0)
-ToggleBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
-ToggleBtn.Text = "🌀"
-ToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-ToggleBtn.TextSize = 22
-ToggleBtn.Active = true
-ToggleBtn.Draggable = true
+local WatermarkGui = Instance.new("ScreenGui")
+WatermarkGui.Name = "YinYangWatermark"
+WatermarkGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+WatermarkGui.ResetOnSpawn = false
 
-local ToggleCorner = Instance.new("UICorner", ToggleBtn)
-ToggleCorner.CornerRadius = UDim.new(1, 0)
+local WatermarkLabel = Instance.new("TextLabel", WatermarkGui)
+WatermarkLabel.Size = UDim2.new(0, 280, 0, 45)
+WatermarkLabel.Position = UDim2.new(0.02, 0, 0.02, 0)
+WatermarkLabel.BackgroundColor3 = Color3.fromRGB(20, 20, 28)
+WatermarkLabel.Text = "☯️ YIN-YANG HUB [Active]"
+WatermarkLabel.TextColor3 = Color3.fromRGB(130, 90, 255)
+WatermarkLabel.Font = Enum.Font.GothamBold
+WatermarkLabel.TextSize = 16
+WatermarkLabel.Active = true
+WatermarkLabel.Draggable = true
 
-local isOpen = true
-
--- ===================================================
--- 📱 ฝั่งซ้าย (Left Side) : สคริปต์ความเร็ว (ลากย้ายได้)
--- ===================================================
-local LeftFrame = Instance.new("Frame", ScreenGui)
-LeftFrame.Name = "SpeedHub_Left"
-LeftFrame.Size = UDim2.new(0, 260, 0, 190)
-LeftFrame.Position = UDim2.new(0.02, 0, 0.3, 0)
-LeftFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
-LeftFrame.Active = true
-LeftFrame.Draggable = true
-
-local LeftCorner = Instance.new("UICorner", LeftFrame)
-LeftCorner.CornerRadius = UDim.new(0, 10)
-
-local LeftTitle = Instance.new("TextLabel", LeftFrame)
-LeftTitle.Size = UDim2.new(1, 0, 0, 40)
-LeftTitle.BackgroundColor3 = Color3.fromRGB(35, 35, 50)
-LeftTitle.Text = "⚡ SPEED CONTROL"
-LeftTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-LeftTitle.TextSize = 16
-LeftTitle.Font = Enum.Font.SourceSansBold
-
-local LeftTitleCorner = Instance.new("UICorner", LeftTitle)
-LeftTitleCorner.CornerRadius = UDim.new(0, 10)
-
-local b = Instance.new("TextButton", LeftFrame)
-b.Size = UDim2.new(1, -24, 0, 45)
-b.Position = UDim2.new(0, 12, 0, 52)
-b.Text = "ความเร็ว: ปิด"
-b.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
-b.TextColor3 = Color3.fromRGB(255, 255, 255)
-b.Font = Enum.Font.SourceSansBold
-b.TextSize = 18
-
-local bCorner = Instance.new("UICorner", b)
-bCorner.CornerRadius = UDim.new(0, 8)
-
-local t = Instance.new("TextBox", LeftFrame)
-t.Position = UDim2.new(0, 12, 0, 110)
-t.Size = UDim2.new(1, -24, 0, 45)
-t.Text = "32"
-t.BackgroundColor3 = Color3.fromRGB(15, 15, 22)
-t.TextColor3 = Color3.fromRGB(255, 255, 255)
-t.Font = Enum.Font.SourceSansBold
-t.TextSize = 20
-
-local tCorner = Instance.new("UICorner", t)
-tCorner.CornerRadius = UDim.new(0, 8)
-
-local on = false
-b.MouseButton1Click:Connect(function()
-    on = not on
-    b.Text = on and "ความเร็ว: เปิด" or "ความเร็ว: ปิด"
-    b.BackgroundColor3 = on and Color3.fromRGB(50, 180, 50) or Color3.fromRGB(180, 50, 50)
-    
-    local h = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-    if h then 
-        h.WalkSpeed = on and (tonumber(t.Text) or 32) or 16 
-    end
-end)
-
-t.FocusLost:Connect(function()
-    if on then
-        local h = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-        if h then 
-            h.WalkSpeed = tonumber(t.Text) or 32 
-        end
-    end
-end)
-
+local WmCorner = Instance.new("UICorner", WatermarkLabel)
+WmCorner.CornerRadius = UDim.new(0, 8)
+local WmStroke = Instance.new("UIStroke", WatermarkLabel)
+WmStroke.Color = Color3.fromRGB(130, 90, 255)
+WmStroke.Thickness = 2
 
 -- ===================================================
--- 📱 ฝั่งขวา (Right Side) : Script Loader (ลากย้ายได้)
+-- 📑 แท็บที่ 1: Player & Amendment Script
 -- ===================================================
-local RightFrame = Instance.new("Frame", ScreenGui)
-RightFrame.Name = "LoaderHub_Right"
-RightFrame.Size = UDim2.new(0, 290, 0, 420)
-RightFrame.Position = UDim2.new(0.98, -290, 0.25, 0)
-RightFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 28)
-RightFrame.Active = true
-RightFrame.Draggable = true
+local SpeedTab = Window:Tab({
+    Title = "Player & Speed",
+    Icon = "zap",
+})
 
-local RightCorner = Instance.new("UICorner", RightFrame)
-RightCorner.CornerRadius = UDim.new(0, 10)
+local ScriptSection = SpeedTab:Section({
+    Title = "Amendment Script"
+})
 
-local RightTitle = Instance.new("TextLabel", RightFrame)
-RightTitle.Size = UDim2.new(1, 0, 0, 40)
-RightTitle.BackgroundColor3 = Color3.fromRGB(30, 30, 42)
-RightTitle.Text = "🚀 SCRIPT LOADER (ALL SCRIPTS)"
-RightTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-RightTitle.TextSize = 16
-RightTitle.Font = Enum.Font.SourceSansBold
-
-local RightTitleCorner = Instance.new("UICorner", RightTitle)
-RightTitleCorner.CornerRadius = UDim.new(0, 10)
-
-local Scroll = Instance.new("ScrollingFrame", RightFrame)
-Scroll.Size = UDim2.new(1, -16, 1, -50)
-Scroll.Position = UDim2.new(0, 8, 0, 45)
-Scroll.BackgroundTransparency = 1
-Scroll.ScrollBarThickness = 6
-
-local Layout = Instance.new("UIListLayout", Scroll)
-Layout.SortOrder = Enum.SortOrder.LayoutOrder
-Layout.Padding = UDim.new(0, 8)
-
-local function createScriptBtn(btnText, scriptUrl, btnColor)
-    local Btn = Instance.new("TextButton", Scroll)
-    Btn.Size = UDim2.new(1, 0, 0, 40)
-    Btn.BackgroundColor3 = btnColor or Color3.fromRGB(40, 40, 55)
-    Btn.Text = btnText
-    Btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Btn.TextSize = 14
-    Btn.Font = Enum.Font.SourceSansBold
-
-    local Corner = Instance.new("UICorner", Btn)
-    Corner.CornerRadius = UDim.new(0, 8)
-
-    Btn.MouseButton1Click:Connect(function()
+ScriptSection:Button({
+    Title = "Amendment",
+    Callback = function()
         pcall(function()
-            loadstring(game:HttpGet(scriptUrl))()
+            loadstring(game:HttpGet("https://gist.githubusercontent.com/khankhihma-max/7edd6746170ad31db07256cca72bbe70/raw/e0988bc2ba40107a0f9d4756ada6b1b8c83f814c/Amendment.lua"))()
         end)
-    end)
+    end
+})
+
+local InfoSection = SpeedTab:Section({
+    Title = "Player Information"
+})
+
+InfoSection:Button({ 
+    Title = "ชื่อผู้เล่น: " .. LocalPlayer.Name,
+    Callback = function() end 
+})
+
+InfoSection:Button({ 
+    Title = "ชื่อแสดง: " .. LocalPlayer.DisplayName,
+    Callback = function() end 
+})
+
+-- ===================================================
+-- 📑 แท็บที่ 2: Script Loader (รวมสคริปต์ทั้งหมด ไร้อิโมจิที่ปุ่ม)
+-- ===================================================
+local ScriptTab = Window:Tab({
+    Title = "Script Loader",
+    Icon = "code",
+})
+
+local function addScript(sectionName, btnTitle, scriptUrl)
+    local sec = ScriptTab:Section({ Title = sectionName })
+    sec:Button({
+        Title = btnTitle,
+        Callback = function()
+            pcall(function()
+                loadstring(game:HttpGet(scriptUrl))()
+            end)
+        end
+    })
 end
 
--- รายการปุ่มสคริปต์ทั้งหมด (รวม 3 ลิงก์ล่าสุดจาก APICHAT)
-createScriptBtn("⚔️ Blade Ball (APICHAT)", "https://raw.githubusercontent.com/APICHAT-DOMAIN/APICHAT-DOMAIN/main/BLADE%20BALL.lua?nocache="..os.time(), Color3.fromRGB(50, 120, 200))
-createScriptBtn("🗺️ Tumap Script (APICHAT)", "https://raw.githubusercontent.com/APICHAT-DOMAIN/APICHAT-DOMAIN/main/tumap.lua?nocache="..os.time(), Color3.fromRGB(80, 180, 100))
-createScriptBtn("📄 README Script (APICHAT)", "https://raw.githubusercontent.com/APICHAT-DOMAIN/APICHAT-DOMAIN/main/README.md?nocache="..os.time(), Color3.fromRGB(150, 100, 200))
+-- เพิ่มรายการสคริปต์ทั้งหมด (ชื่อล้วน ไม่มีอิโมจิ)
+addScript("Game Hubs: Evade", "Run Evade KRYVEX", "https://raw.githubusercontent.com/komayma273-cyber/KRYVEX-Hub-K/refs/heads/main/Run%20Evade")
+addScript("APICHAT & Community", "Blade Ball", "https://raw.githubusercontent.com/APICHAT-DOMAIN/APICHAT-DOMAIN/main/BLADE%20BALL.lua?nocache="..os.time())
+addScript("APICHAT & Community", "Tumap Script", "https://raw.githubusercontent.com/APICHAT-DOMAIN/APICHAT-DOMAIN/main/tumap.lua?nocache="..os.time())
+addScript("APICHAT & Community", "README Script", "https://raw.githubusercontent.com/APICHAT-DOMAIN/APICHAT-DOMAIN/main/README.md?nocache="..os.time())
+addScript("Key & Loader Systems", "ZeroPoint", "https://raw.githubusercontent.com/JaxRol/ZeroPoint/refs/heads/main/KeySystem")
+addScript("Key & Loader Systems", "Luarmor Loader", "https://api.luarmor.net/files/v3/loaders/2529a5f9dfddd5523ca4e22f21cceffa.lua")
+addScript("Key & Loader Systems", "TraxHub", "https://raw.githubusercontent.com/BestScript-netizen/SABScripts/refs/heads/main/TraxHub")
+addScript("General & Utility", "RUNLUA RTA-THAI", "https://raw.githubusercontent.com/RUNLUA-HUBS/RUNLUA-HUBS/refs/heads/main/Scrip-MAP/RTA-THAI/kr.lua")
+addScript("Game Hubs: Steal An Egg", "Steal An Egg Autofarm", "https://scriptblox.com/raw/Steal-An-Egg-Instant-Steal-Fastest-autofarm-Everything-autofarm-223695")
+addScript("Game Hubs: Speed Escape", "1 Speed Keyboard Escape", "https://scriptblox.com/raw/+1-Speed-Keyboard-Escape-or-Candy-and-Chocolate-Auto-Run-Auto-Win-Anti-Kick-Full-Autofarm-230390")
+addScript("Game Hubs: MM2", "MM2 Moondiety Keyless", "https://scriptblox.com/raw/Murder-Mystery-2-KEYLESS-InstaWin-AutoFarm-Kill-all-XRay-nd-more-by-Moondiety-48644")
+addScript("Game Hubs: Fisch", "Fisch Blackhub", "https://scriptblox.com/raw/Fisch-Blackhub-Best-Undetected-Script-53591")
+addScript("Game Hubs: RIVALS", "RIVALS Korax Hub", "https://scriptblox.com/raw/RIVALS-Korax-226484")
+addScript("Game Hubs: Blox Fruits", "Blox Fruits No Lag Keyless", "https://scriptblox.com/raw/Blox-Fruits-No-Lag-Hub-or-Keyless-234045")
+addScript("Game Hubs: 99 Nights", "99 Nights Lunar Hub", "https://scriptblox.com/raw/99-Nights-in-the-Forest-Lunar-Hub-or-Auto-Days-Auto-Chop-Tree-Auto-Kill-Bunny-MORE-233729")
+addScript("Game Hubs: Evade", "Evade Updated", "https://scriptblox.com/raw/UPDATE-Evade-Evade-UPDATED-5514")
+addScript("Game Hubs: Evade", "Evade ReefHub", "https://scriptblox.com/raw/HLWN-Evade-ReefHub-Nextbots-ESP-Auto-Win-Teleport-Set-FOV-and-More-233180")
+addScript("Game Hubs: Evade", "Kant Hub Universal", "https://scriptblox.com/raw/Universal-Script-Kant-Hub-234038")
+addScript("Game Hubs: Evade", "Evade Yin-Yang Hub", "https://scriptblox.com/raw/Evade-Yin-Yang-New-227130")
+addScript("Game Hubs: MM2", "MM2 Farm KRYVEX", "https://raw.githubusercontent.com/komayma273-cyber/Script-Evade/refs/heads/main/KRYVEX%20Hub%20MM2%20Farm")
+addScript("Game Hubs: Venyx", "VENYX HUB แปลไทย", "https://raw.githubusercontent.com/bafuck48-sketch/VENYX-Hub/main/VENYXHUB.lua")
 
--- รายการสคริปต์เดิมทั้งหมด
-createScriptBtn("🔑 ZeroPoint (KeySystem)", "https://raw.githubusercontent.com/JaxRol/ZeroPoint/refs/heads/main/KeySystem", Color3.fromRGB(70, 130, 180))
-createScriptBtn("🛡️ Luarmor Loader", "https://api.luarmor.net/files/v3/loaders/2529a5f9dfddd5523ca4e22f21cceffa.lua", Color3.fromRGB(150, 70, 180))
-createScriptBtn("⭐ TraxHub", "https://raw.githubusercontent.com/BestScript-netizen/SABScripts/refs/heads/main/TraxHub", Color3.fromRGB(180, 100, 40))
-createScriptBtn("🛠️ Amendment Script", "https://gist.githubusercontent.com/khankhihma-max/7edd6746170ad31db07256cca72bbe70/raw/e0988bc2ba40107a0f9d4756ada6b1b8c83f814c/Amendment.lua", Color3.fromRGB(100, 60, 160))
-createScriptBtn("🇹🇭 RUNLUA (RTA-THAI)", "https://raw.githubusercontent.com/RUNLUA-HUBS/RUNLUA-HUBS/refs/heads/main/Scrip-MAP/RTA-THAI/kr.lua", Color3.fromRGB(40, 140, 100))
-createScriptBtn("🥚 Steal An Egg (Autofarm)", "https://scriptblox.com/raw/Steal-An-Egg-Instant-Steal-Fastest-autofarm-Everything-autofarm-223695", Color3.fromRGB(220, 150, 40))
-createScriptBtn("⌨️ +1 Speed Keyboard Escape", "https://scriptblox.com/raw/+1-Speed-Keyboard-Escape-or-Candy-and-Chocolate-Auto-Run-Auto-Win-Anti-Kick-Full-Autofarm-230390", Color3.fromRGB(200, 80, 50))
-createScriptBtn("🔪 MM2 (Moondiety Keyless)", "https://scriptblox.com/raw/Murder-Mystery-2-KEYLESS-InstaWin-AutoFarm-Kill-all-XRay-nd-more-by-Moondiety-48644", Color3.fromRGB(150, 40, 150))
-createScriptBtn("🎣 Fisch (Blackhub)", "https://scriptblox.com/raw/Fisch-Blackhub-Best-Undetected-Script-53591", Color3.fromRGB(40, 110, 180))
-createScriptBtn("🎯 RIVALS (Korax Hub)", "https://scriptblox.com/raw/RIVALS-Korax-226484", Color3.fromRGB(180, 50, 50))
-createScriptBtn("🍌 Blox Fruits (No Lag / Keyless)", "https://scriptblox.com/raw/Blox-Fruits-No-Lag-Hub-or-Keyless-234045", Color3.fromRGB(50, 150, 50))
-createScriptBtn("🌲 99 Nights (Lunar Hub)", "https://scriptblox.com/raw/99-Nights-in-the-Forest-Lunar-Hub-or-Auto-Days-Auto-Chop-Tree-Auto-Kill-Bunny-MORE-233729", Color3.fromRGB(70, 130, 180))
-createScriptBtn("⚡ Evade Updated", "https://scriptblox.com/raw/UPDATE-Evade-Evade-UPDATED-5514", Color3.fromRGB(180, 70, 50))
-createScriptBtn("🌊 Evade ReefHub (ESP/Win)", "https://scriptblox.com/raw/HLWN-Evade-ReefHub-Nextbots-ESP-Auto-Win-Teleport-Set-FOV-and-More-233180", Color3.fromRGB(50, 100, 180))
-createScriptBtn("🌐 Kant Hub (Universal)", "https://scriptblox.com/raw/Universal-Script-Kant-Hub-234038", Color3.fromRGB(120, 50, 180))
-createScriptBtn("☯️ Evade Yin-Yang Hub", "https://scriptblox.com/raw/Evade-Yin-Yang-New-227130", Color3.fromRGB(100, 100, 120))
-createScriptBtn("🏃 Run Evade (KRYVEX)", "https://raw.githubusercontent.com/komayma273-cyber/KRYVEX-Hub-K/refs/heads/main/Run%20Evade", Color3.fromRGB(160, 60, 60))
-createScriptBtn("🔪 MM2 Farm (KRYVEX)", "https://raw.githubusercontent.com/komayma273-cyber/Script-Evade/refs/heads/main/KRYVEX%20Hub%20MM2%20Farm", Color3.fromRGB(150, 50, 180))
-createScriptBtn("🔥 VENYX HUB (แปลไทย)", "https://raw.githubusercontent.com/bafuck48-sketch/VENYX-Hub/main/VENYXHUB.lua", Color3.fromRGB(200, 140, 30))
-
-Scroll.CanvasSize = UDim2.new(0, 0, 0, Layout.AbsoluteContentSize.Y + 10)
-
--- ===================================================
--- ⚙️ ระบบกดที่ไอคอนเพื่อ เปิด / ปิด หน้าต่างเมนู
--- ===================================================
-ToggleBtn.MouseButton1Click:Connect(function()
-    isOpen = not isOpen
-    LeftFrame.Visible = isOpen
-    RightFrame.Visible = isOpen
-    ToggleBtn.BackgroundColor3 = isOpen and Color3.fromRGB(40, 40, 55) or Color3.fromRGB(180, 50, 50)
-end)
+print("☯️ Yin-Yang Hub (WindUI) Loaded Successfully!")
