@@ -1,4 +1,4 @@
-# yin-ying-hub
+# yin-ying-hub = run script html=("https://raw.githubusercontent.com/hacker0030mp/yin-ying-hub/refs/heads/main/MAC-MAX-HUB-X-Redesigned.html")
 <!DOCTYPE html>
 <html lang="th">
 <head>
