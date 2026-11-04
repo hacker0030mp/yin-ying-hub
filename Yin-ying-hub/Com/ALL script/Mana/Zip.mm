@@ -1,11 +1,12 @@
 -- =========================================================================
--- ☯️ YIN-YANG HUB | SIMPLE KEY SYSTEM & SCRIPT SELECTOR ☯️
+-- ☯️ YIN-YANG HUB | MINIMIZE TO WATERMARK & MULTI-RUN SYSTEM ☯️
 -- ระบบ Key คีย์เดิม: YINYANG2026 (กดคัดลอกแล้ววางให้อัตโนมัติ)
 -- =========================================================================
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local CoreGui = game:GetService("CoreGui")
+local UserInputService = game:GetService("UserInputService")
 
 local LocalPlayer = Players.LocalPlayer
 local parentGui = (gethui and gethui()) or (syn and syn.protect_gui and CoreGui) or LocalPlayer:WaitForChild("PlayerGui")
@@ -23,13 +24,58 @@ local MAIN_SCRIPT_URL_1 = "https://raw.githubusercontent.com/hacker0030mp/yin-yi
 local MAIN_SCRIPT_URL_2 = "https://raw.githubusercontent.com/hacker0030mp/yin-ying-hub/refs/heads/main/Yin-ying-hub/Com/ALL%20script/Mana/Ran-script-outside-the-system"
 local MAIN_SCRIPT_URL_3 = "https://raw.githubusercontent.com/hacker0030mp/yin-ying-hub/refs/heads/main/Yin-ying-hub/Com/XMP-all-script%20x%20hub"
 
--- สร้าง ScreenGui
+-- สร้าง ScreenGui หลัก
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "YinYangKeySystemGui"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = parentGui
 
--- หน้าต่าง Key System
+-- =========================================================================
+-- 🏠 ปุ่มลอยรูปบ้าน (Floating Toggle Button / Watermark)
+-- =========================================================================
+local FloatingBtn = Instance.new("TextButton")
+FloatingBtn.Name = "FloatingBtn"
+FloatingBtn.Size = UDim2.fromOffset(45, 45)
+FloatingBtn.Position = UDim2.new(0, 30, 0.5, -22)
+FloatingBtn.BackgroundColor3 = Color3.fromRGB(15, 23, 20)
+FloatingBtn.Font = Enum.Font.GothamBold
+FloatingBtn.Text = "🏠"
+FloatingBtn.TextColor3 = Color3.fromRGB(52, 211, 153)
+FloatingBtn.TextSize = 20
+FloatingBtn.Visible = false -- ซ่อนไว้จนกว่าจะผ่าน Key
+FloatingBtn.Parent = ScreenGui
+Instance.new("UICorner", FloatingBtn).CornerRadius = UDim.new(1, 0)
+
+local FloatStroke = Instance.new("UIStroke")
+FloatStroke.Color = Color3.fromRGB(16, 185, 129)
+FloatStroke.Thickness = 1.8
+FloatStroke.Parent = FloatingBtn
+
+-- ทำให้ปุ่มลอยสามารถลากเลื่อนไปมาได้ (Draggable)
+local dragging, dragInput, dragStart, startPos
+FloatingBtn.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = FloatingBtn.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        local delta = input.Position - dragStart
+        FloatingBtn.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+-- =========================================================================
+-- 🔑 หน้าต่าง Key System
+-- =========================================================================
 local KeyFrame = Instance.new("Frame")
 KeyFrame.Name = "KeyFrame"
 KeyFrame.Size = UDim2.fromOffset(360, 220)
@@ -69,7 +115,7 @@ KeyInput.Parent = KeyFrame
 Instance.new("UICorner", KeyInput).CornerRadius = UDim.new(0, 8)
 Instance.new("UIStroke", KeyInput).Color = Color3.fromRGB(30, 70, 55)
 
--- ปุ่ม Copy Key (คัดลอกคีย์เดิมและวางลงช่องให้อัตโนมัติ)
+-- ปุ่ม Copy Key
 local CopyKeyBtn = Instance.new("TextButton")
 CopyKeyBtn.Size = UDim2.new(0.46, -5, 0, 38)
 CopyKeyBtn.Position = UDim2.new(0, 20, 0, 100)
@@ -131,7 +177,6 @@ LoadTitle.TextColor3 = Color3.fromRGB(52, 211, 153)
 LoadTitle.TextSize = 14
 LoadTitle.Parent = LoadingFrame
 
--- แถบ Loading Bar
 local ProgressBarBg = Instance.new("Frame")
 ProgressBarBg.Size = UDim2.new(1, -40, 0, 14)
 ProgressBarBg.Position = UDim2.new(0, 20, 0, 60)
@@ -156,7 +201,7 @@ PercentText.TextSize = 12
 PercentText.Parent = LoadingFrame
 
 -- =========================================================================
--- 🖥️ หน้าต่างเลือกสคริปต์หลัก (SCRIPT SELECTOR MENU) หลังโหลดครบ 10 วิ
+-- 🖥️ หน้าต่างเลือกสคริปต์หลัก (SCRIPT SELECTOR MENU)
 -- =========================================================================
 local SelectFrame = Instance.new("Frame")
 SelectFrame.Name = "SelectFrame"
@@ -182,7 +227,7 @@ SelectTitle.TextColor3 = Color3.fromRGB(52, 211, 153)
 SelectTitle.TextSize = 14
 SelectTitle.Parent = SelectFrame
 
--- ปุ่มกดรันสคริปต์ที่ 1 (Main Script 1)
+-- ปุ่มกดรันสคริปต์ 1
 local RunBtn1 = Instance.new("TextButton")
 RunBtn1.Size = UDim2.new(1, -40, 0, 45)
 RunBtn1.Position = UDim2.new(0, 20, 0, 55)
@@ -194,7 +239,7 @@ RunBtn1.TextSize = 12
 RunBtn1.Parent = SelectFrame
 Instance.new("UICorner", RunBtn1).CornerRadius = UDim.new(0, 8)
 
--- ปุ่มกดรันสคริปต์ที่ 2 (Main Script 2)
+-- ปุ่มกดรันสคริปต์ 2
 local RunBtn2 = Instance.new("TextButton")
 RunBtn2.Size = UDim2.new(1, -40, 0, 45)
 RunBtn2.Position = UDim2.new(0, 20, 0, 110)
@@ -206,7 +251,7 @@ RunBtn2.TextSize = 12
 RunBtn2.Parent = SelectFrame
 Instance.new("UICorner", RunBtn2).CornerRadius = UDim.new(0, 8)
 
--- ปุ่มกดรันสคริปต์ที่ 3 (Main Script 3)
+-- ปุ่มกดรันสคริปต์ 3
 local RunBtn3 = Instance.new("TextButton")
 RunBtn3.Size = UDim2.new(1, -40, 0, 45)
 RunBtn3.Position = UDim2.new(0, 20, 0, 165)
@@ -218,14 +263,14 @@ RunBtn3.TextSize = 12
 RunBtn3.Parent = SelectFrame
 Instance.new("UICorner", RunBtn3).CornerRadius = UDim.new(0, 8)
 
--- ปิดหน้าต่างทั้งหมด
+-- ซ่อนหน้าต่าง (Minimize ลงปุ่มบ้าน)
 local CloseHubBtn = Instance.new("TextButton")
 CloseHubBtn.Size = UDim2.new(1, -40, 0, 35)
 CloseHubBtn.Position = UDim2.new(0, 20, 0, 225)
-CloseHubBtn.BackgroundColor3 = Color3.fromRGB(50, 20, 20)
+CloseHubBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 20)
 CloseHubBtn.Font = Enum.Font.GothamBold
-CloseHubBtn.Text = "❌ ปิดหน้าต่างนี้"
-CloseHubBtn.TextColor3 = Color3.fromRGB(239, 68, 68)
+CloseHubBtn.Text = "📂 ซ่อนหน้าต่าง (ย้ายไปที่ปุ่มบ้าน)"
+CloseHubBtn.TextColor3 = Color3.fromRGB(234, 179, 8)
 CloseHubBtn.TextSize = 11
 CloseHubBtn.Parent = SelectFrame
 Instance.new("UICorner", CloseHubBtn).CornerRadius = UDim.new(0, 8)
@@ -234,19 +279,17 @@ Instance.new("UICorner", CloseHubBtn).CornerRadius = UDim.new(0, 8)
 -- ⚡ ฟังก์ชันการทำงาน
 -- =========================================================================
 
--- กดคัดลอก Key เดิม และ วางลงช่องให้อัตโนมัติทันที
+-- คัดลอก Key อัตโนมัติ
 CopyKeyBtn.MouseButton1Click:Connect(function()
     if setclipboard then
         setclipboard(CORRECT_KEY)
     end
-
     KeyInput.Text = CORRECT_KEY
-
     StatusLabel.Text = "📋 คัดลอกและวาง Key สำเร็จแล้ว!"
     StatusLabel.TextColor3 = Color3.fromRGB(52, 211, 153)
 end)
 
--- กดตกลงยืนยัน Key
+-- ยืนยัน Key และเริ่มนับเวลาถอยหลัง 10 วิ
 SubmitBtn.MouseButton1Click:Connect(function()
     if KeyInput.Text == CORRECT_KEY then
         KeyFrame.Visible = false
@@ -265,9 +308,9 @@ SubmitBtn.MouseButton1Click:Connect(function()
                 task.wait(1)
             end
 
-            -- ซ่อนหน้าโหลด แล้วแสดงเมนูเลือกสคริปต์
             LoadingFrame.Visible = false
             SelectFrame.Visible = true
+            FloatingBtn.Visible = true -- แสดงปุ่มบ้านลอยน้ำ
         end)
     else
         StatusLabel.Text = "❌ Key ไม่ถูกต้อง! กรุณาลองใหม่อีกครั้ง"
@@ -275,40 +318,51 @@ SubmitBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- ปุ่มรันสคริปต์ที่ 1
+-- ฟังก์ชันกดปุ่มบ้าน 🏠 เพื่อเปิด/ปิด (Toggle) หน้าต่างเลือกสคริปต์
+FloatingBtn.MouseButton1Click:Connect(function()
+    SelectFrame.Visible = not SelectFrame.Visible
+end)
+
+-- ปุ่มรันสคริปต์ 1 (รันทับได้ เมนูจะซ่อนไปที่ปุ่มบ้าน)
 RunBtn1.MouseButton1Click:Connect(function()
-    ScreenGui:Destroy()
-    local success, err = pcall(function()
-        loadstring(game:HttpGet(MAIN_SCRIPT_URL_1))()
+    SelectFrame.Visible = false
+    task.spawn(function()
+        local success, err = pcall(function()
+            loadstring(game:HttpGet(MAIN_SCRIPT_URL_1))()
+        end)
+        if not success then
+            warn("เกิดข้อผิดพลาดในการโหลดสคริปต์ 1: " .. tostring(err))
+        end
     end)
-    if not success then
-        warn("เกิดข้อผิดพลาดในการโหลดสคริปต์ 1: " .. tostring(err))
-    end
 end)
 
--- ปุ่มรันสคริปต์ที่ 2
+-- ปุ่มรันสคริปต์ 2 (รันทับได้)
 RunBtn2.MouseButton1Click:Connect(function()
-    ScreenGui:Destroy()
-    local success, err = pcall(function()
-        loadstring(game:HttpGet(MAIN_SCRIPT_URL_2))()
+    SelectFrame.Visible = false
+    task.spawn(function()
+        local success, err = pcall(function()
+            loadstring(game:HttpGet(MAIN_SCRIPT_URL_2))()
+        end)
+        if not success then
+            warn("เกิดข้อผิดพลาดในการโหลดสคริปต์ 2: " .. tostring(err))
+        end
     end)
-    if not success then
-        warn("เกิดข้อผิดพลาดในการโหลดสคริปต์ 2: " .. tostring(err))
-    end
 end)
 
--- ปุ่มรันสคริปต์ที่ 3
+-- ปุ่มรันสคริปต์ 3 (รันทับได้)
 RunBtn3.MouseButton1Click:Connect(function()
-    ScreenGui:Destroy()
-    local success, err = pcall(function()
-        loadstring(game:HttpGet(MAIN_SCRIPT_URL_3))()
+    SelectFrame.Visible = false
+    task.spawn(function()
+        local success, err = pcall(function()
+            loadstring(game:HttpGet(MAIN_SCRIPT_URL_3))()
+        end)
+        if not success then
+            warn("เกิดข้อผิดพลาดในการโหลดสคริปต์ 3: " .. tostring(err))
+        end
     end)
-    if not success then
-        warn("เกิดข้อผิดพลาดในการโหลดสคริปต์ 3: " .. tostring(err))
-    end
 end)
 
--- ปุ่มปิดหน้าต่าง
+-- ปุ่มซ่อนหน้าต่าง (ย้ายไปซ่อนที่ปุ่มบ้าน)
 CloseHubBtn.MouseButton1Click:Connect(function()
-    ScreenGui:Destroy()
+    SelectFrame.Visible = false
 end)
