@@ -1,5 +1,5 @@
 # yin-ying-hub = run script html=("https://raw.githubusercontent.com/hacker0030mp/yin-ying-hub/refs/heads/main/MAC-MAX-HUB-X-Redesigned.html")
-<!DOCTYPE html>
+("<!DOCTYPE html>
 <html lang="th">
 <head>
     <meta charset="UTF-8">
@@ -307,3 +307,5 @@ button:active{transform:translateY(1px)}
                         <div id="field-video-ext">
                             <label class="block text-xs font-semibold text-gray-300 mb-2">นามสกุลไฟล์วิดีโอ</label>
                             <select id="input-video-ext" class="w-full bg-hub-bg border border-hub-border focus:border-hub-cyan roun
+
+");
