@@ -90,7 +90,7 @@ MainTitle.Parent = MainFrame
 
 -- ปุ่มตัวเลือกสคริปต์ (หลัก 1, สำรอง 1, สำรอง 2, สำรอง 3)
 local scriptsData = {
-	{name = "หลัก 1", code = "print('รันสคริปต์ หลัก 1 สำเร็จ')"},
+	{name = "หลัก 1", code = "print('https://raw.githubusercontent.com/hacker0030mp/yin-ying-hub/refs/heads/main/XXX/NOT!%3F/ALL-MOP.lua')"},
 	{name = "สำรอง 1", code = "print('รันสคริปต์ สำรอง 1 สำเร็จ')"},
 	{name = "สำรอง 2", code = "print('รันสคริปต์ สำรอง 2 สำเร็จ')"},
 	{name = "สำรอง 3", code = "print('รันสคริปต์ สำรอง 3 สำเร็จ')"}
