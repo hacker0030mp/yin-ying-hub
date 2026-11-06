@@ -88,12 +88,12 @@ MainTitle.Font = Enum.Font.SourceSansBold
 MainTitle.BackgroundTransparency = 1
 MainTitle.Parent = MainFrame
 
--- ปุ่มตัวเลือกสคริปต์ (หลัก 1, สำรอง 1, สำรอง 2, สำรอง 3)
+-- ปุ่มตัวเลือกสคริปต์ (หลัก 1, สำรอง 1, สำรอง 2, สำรอง 3) พร้อมเชื่อมลิงก์รันจริง
 local scriptsData = {
-	{name = "หลัก 1", code = "print('https://raw.githubusercontent.com/hacker0030mp/yin-ying-hub/refs/heads/main/XXX/NOT!%3F/ALL-MOP.lua')"},
-	{name = "สำรอง 1", code = "print('https://raw.githubusercontent.com/hacker0030mp/yin-ying-hub/refs/heads/main/XXX/NOT!%3F/extrait.net.1.lua')"},
-	{name = "สำรอง 2", code = "print('https://raw.githubusercontent.com/hacker0030mp/yin-ying-hub/refs/heads/main/XXX/NOT!%3F/extrait.net.2.lua')"},
-	{name = "สำรอง 3", code = "print('https://raw.githubusercontent.com/hacker0030mp/yin-ying-hub/refs/heads/main/XXX/NOT!%3F/extrait.net.3.lua')"}
+	{name = "หลัก 1", url = "https://raw.githubusercontent.com/hacker0030mp/yin-ying-hub/refs/heads/main/XXX/NOT!%3F/ALL-MOP.lua"},
+	{name = "สำรอง 1", url = "https://raw.githubusercontent.com/hacker0030mp/yin-ying-hub/refs/heads/main/XXX/NOT!%3F/extrait.net.1.lua"},
+	{name = "สำรอง 2", url = "https://raw.githubusercontent.com/hacker0030mp/yin-ying-hub/refs/heads/main/XXX/NOT!%3F/extrait.net.2.lua"},
+	{name = "สำรอง 3", url = "https://raw.githubusercontent.com/hacker0030mp/yin-ying-hub/refs/heads/main/XXX/NOT!%3F/extrait.net.3.lua"}
 }
 
 for i, data in ipairs(scriptsData) do
@@ -113,7 +113,7 @@ for i, data in ipairs(scriptsData) do
 	
 	btn.MouseButton1Click:Connect(function()
 		local success, err = pcall(function()
-			loadstring(data.code)()
+			loadstring(game:HttpGet(data.url))()
 		end)
 		if success then
 			btn.Text = "รัน " .. data.name .. " สำเร็จ!"
@@ -121,11 +121,14 @@ for i, data in ipairs(scriptsData) do
 			btn.Text = "รัน: " .. data.name
 		else
 			warn("Error: " .. tostring(err))
+			btn.Text = "รันผิดพลาด"
+			task.wait(1.5)
+			btn.Text = "รัน: " .. data.name
 		end
 	end)
 end
 
--- ช่องใส่ลิงก์ที่ดึงมาอัตโนมัติ
+-- ช่องใส่ลิงก์ Discord (หรือลิงก์อื่นๆ)
 local LinkBox = Instance.new("TextBox")
 LinkBox.Size = UDim2.new(0.55, 0, 0, 35)
 LinkBox.Position = UDim2.new(0.1, 0, 0, 230)
@@ -154,7 +157,7 @@ local RunLinkCorner = Instance.new("UICorner")
 RunLinkCorner.CornerRadius = UDim.new(0, 6)
 RunLinkCorner.Parent = RunLinkBtn
 
--- ปุ่มกดรันสคริปต์จากลิงก์
+-- ปุ่มกดรันสคริปต์จากลิงก์ในกล่อง
 RunLinkBtn.MouseButton1Click:Connect(function()
 	local url = LinkBox.Text
 	if url ~= "" then
