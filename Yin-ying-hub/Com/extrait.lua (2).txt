@@ -132,7 +132,7 @@ webBtn.Size = UDim2.new(1, -60, 0, 32)
 webBtn.Position = UDim2.new(0, 30, 0, 260)
 webBtn.BackgroundColor3 = Color3.fromRGB(124, 58, 237)
 webBtn.BorderSizePixel = 0
-webBtn.Text = "🌐 เปิดเว็บรับ Key"
+webBtn.Text = "เอาลิ้งค์คีย์ที่นี้"
 webBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 webBtn.TextSize = 11
 webBtn.Font = Enum.Font.GothamBold
@@ -176,7 +176,7 @@ end)
 
 webBtn.MouseButton1Click:Connect(function()
     pcall(function() setclipboard(WEB_URL) end)
-    setStatus("🌐 คัดลอกลิงค์เว็บแล้ว เปิดในเบราว์เซอร์", Color3.fromRGB(167, 139, 250))
+    setStatus("https://bejewelled-pixie-199f9d.netlify.app", Color3.fromRGB(167, 139, 250))
 end)
 
 -- Auto-check clipboard on load
