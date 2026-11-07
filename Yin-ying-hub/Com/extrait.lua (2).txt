@@ -15,7 +15,7 @@ local LocalPlayer = Players.LocalPlayer
 
 -- Config
 local MASTER_PASS = "ZAS_10093"
-local WEB_URL = "https://bejewelled-pixie-199f9d.netlify.app" -- ← เปลี่ยนเป็นลิงค์เว็บคุณ
+local WEB_URL = "https://raw.githubusercontent.com/hacker0030mp/yin-ying-hub/refs/heads/main/Yin-ying-hub/Com/Xpinmkol.lua" -- ← เปลี่ยนเป็นลิงค์เว็บคุณ
 
 local Keys = {
     ["DELTA-2024-XK9A"] = true,
