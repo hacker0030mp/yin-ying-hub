@@ -1,0 +1,2 @@
+-- วาง KeyAuth ไว้บนสุดก่อนโหลด Hub
+require(...) -- หรือ loadstring(
