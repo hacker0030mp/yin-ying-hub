@@ -1,0 +1,199 @@
+--[[
+============================================================
+DeltaX KeyAuth — Auto Execute Target Script (v1.1)
+Password unlock: ZAS_10093
+Or fetch key via web → detect clipboard
+============================================================
+]]--
+
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local CoreGui = game:GetService("CoreGui")
+
+local LocalPlayer = Players.LocalPlayer
+
+-- Config
+local MASTER_PASS = "ZAS_10093"
+local WEB_URL = "https://discord.gg/hkS9VUCQRQ"
+-- ลิงก์สคริปต์ปลายทางที่จะรันหลังจากใส่รหัสผ่านถูกต้อง
+local TARGET_SCRIPT_URL = "https://raw.githubusercontent.com/hacker0030mp/yin-ying-hub/refs/heads/main/Yin-ying-hub/Com/ALL%20script/Mana/10/XCZ.lua"
+
+local Keys = {
+    ["DELTA-2024-XK9A"] = true,
+    ["DELTA-2024-ZP4B"] = true,
+    ["DELTA-2024-QM7C"] = true,
+    ["ZAS_10093"] = true,
+}
+
+if CoreGui:FindFirstChild("DeltaXKeyAuth") then CoreGui.DeltaXKeyAuth:Destroy() end
+
+local sg = Instance.new("ScreenGui")
+sg.Name = "DeltaXKeyAuth"
+sg.Parent = CoreGui
+sg.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+sg.ResetOnSpawn = false
+sg.IgnoreGuiInset = true
+
+-- Panel
+local f = Instance.new("Frame")
+f.Size = UDim2.new(0, 380, 0, 340)
+f.Position = UDim2.new(0.5, -190, 0.5, -170)
+f.BackgroundColor3 = Color3.fromRGB(15, 23, 42)
+f.BorderSizePixel = 0
+f.Parent = sg
+Instance.new("UICorner", f).CornerRadius = UDim.new(0, 16)
+local stroke = Instance.new("UIStroke", f)
+stroke.Color = Color3.fromRGB(124, 58, 237); stroke.Thickness = 2
+
+-- Title
+local title = Instance.new("TextLabel", f)
+title.Size = UDim2.new(1, 0, 0, 60)
+title.Position = UDim2.new(0, 0, 0, 10)
+title.BackgroundTransparency = 1
+title.Text = "Δ DELTA X — AUTHENTICATION"
+title.TextColor3 = Color3.fromRGB(167, 139, 250)
+title.TextSize = 17
+title.Font = Enum.Font.GothamBold
+title.TextXAlignment = Enum.TextXAlignment.Center
+
+local sub = Instance.new("TextLabel", f)
+sub.Size = UDim2.new(1, 0, 0, 20)
+sub.Position = UDim2.new(0, 0, 0, 66)
+sub.BackgroundTransparency = 1
+sub.Text = "ใส่ Password หรือ Copy Key จาก Discord"
+sub.TextColor3 = Color3.fromRGB(148, 163, 184)
+sub.TextSize = 11
+sub.Font = Enum.Font.Gotham
+sub.TextXAlignment = Enum.TextXAlignment.Center
+
+-- Password input
+local box = Instance.new("Frame", f)
+box.Size = UDim2.new(1, -60, 0, 40)
+box.Position = UDim2.new(0, 30, 0, 100)
+box.BackgroundColor3 = Color3.fromRGB(30, 41, 59)
+box.BorderSizePixel = 0
+Instance.new("UICorner", box).CornerRadius = UDim.new(0, 8)
+
+local input = Instance.new("TextBox", box)
+input.Size = UDim2.new(1, -20, 1, 0)
+input.Position = UDim2.new(0, 10, 0, 0)
+input.BackgroundTransparency = 1
+input.PlaceholderText = "• • • • • • • • •"
+input.PlaceholderColor3 = Color3.fromRGB(100, 116, 139)
+input.Text = ""
+input.TextColor3 = Color3.fromRGB(255, 255, 255)
+input.TextSize = 14
+input.Font = Enum.Font.Gotham
+input.ClearTextOnFocus = false
+input.TextXAlignment = Enum.TextXAlignment.Center
+
+-- Status
+local status = Instance.new("TextLabel", f)
+status.Size = UDim2.new(1, -60, 0, 24)
+status.Position = UDim2.new(0, 30, 0, 148)
+status.BackgroundTransparency = 1
+status.Text = ""
+status.TextColor3 = Color3.fromRGB(239, 68, 68)
+status.TextSize = 11
+status.Font = Enum.Font.GothamMedium
+status.TextXAlignment = Enum.TextXAlignment.Center
+
+local function setStatus(t, c)
+    status.Text = t
+    status.TextColor3 = c or Color3.fromRGB(239, 68, 68)
+end
+
+-- Unlock button
+local unlock = Instance.new("TextButton", f)
+unlock.Size = UDim2.new(1, -60, 0, 40)
+unlock.Position = UDim2.new(0, 30, 0, 175)
+unlock.BackgroundColor3 = Color3.fromRGB(16, 185, 129)
+unlock.BorderSizePixel = 0
+unlock.Text = "✓ UNLOCK"
+unlock.TextColor3 = Color3.fromRGB(255, 255, 255)
+unlock.TextSize = 13
+unlock.Font = Enum.Font.GothamBold
+Instance.new("UICorner", unlock).CornerRadius = UDim.new(0, 8)
+
+-- Copy key from clipboard button
+local copyBtn = Instance.new("TextButton", f)
+copyBtn.Size = UDim2.new(1, -60, 0, 32)
+copyBtn.Position = UDim2.new(0, 30, 0, 222)
+copyBtn.BackgroundColor3 = Color3.fromRGB(51, 65, 85)
+copyBtn.BorderSizePixel = 0
+copyBtn.Text = "📋 Paste Key จาก Clipboard"
+copyBtn.TextColor3 = Color3.fromRGB(226, 232, 240)
+copyBtn.TextSize = 11
+copyBtn.Font = Enum.Font.GothamSemibold
+Instance.new("UICorner", copyBtn).CornerRadius = UDim.new(0, 8)
+
+-- Open web button
+local webBtn = Instance.new("TextButton", f)
+webBtn.Size = UDim2.new(1, -60, 0, 32)
+webBtn.Position = UDim2.new(0, 30, 0, 260)
+webBtn.BackgroundColor3 = Color3.fromRGB(124, 58, 237)
+webBtn.BorderSizePixel = 0
+webBtn.Text = "คัดลอกลิงค์ Discord"
+webBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+webBtn.TextSize = 11
+webBtn.Font = Enum.Font.GothamBold
+Instance.new("UICorner", webBtn).CornerRadius = UDim.new(0, 8)
+
+local unlocked = false
+local function tryUnlock(code)
+    if unlocked then return end
+    code = (code or ""):gsub("%s", "")
+    if code == "" then setStatus("⚠ ใส่รหัสก่อน") return end
+    if Keys[code] or code == MASTER_PASS then
+        unlocked = true
+        setStatus("✓ ยืนยันสำเร็จ! กำลังรันสคริปต์...", Color3.fromRGB(16, 185, 129))
+        
+        task.delay(0.9, function()
+            TweenService:Create(f, TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
+                Size = UDim2.new(0, 0, 0, 0),
+                Position = UDim2.new(0.5, 0, 0.5, 0)
+            }):Play()
+            task.wait(0.4)
+            sg:Destroy()
+            
+            -- ทำการรันลิงก์สคริปต์ปลายทางต่อทันที
+            pcall(function()
+                loadstring(game:HttpGet(TARGET_SCRIPT_URL))()
+            end)
+        end)
+        _G.DeltaX_Authed = true
+    else
+        setStatus("✗ รหัสไม่ถูกต้อง")
+    end
+end
+
+unlock.MouseButton1Click:Connect(function() tryUnlock(input.Text) end)
+input.FocusLost:Connect(function(enter) if enter then tryUnlock(input.Text) end end)
+
+copyBtn.MouseButton1Click:Connect(function()
+    local ok, txt = pcall(function() return tostring(getclipboard()) end)
+    if ok and txt and txt ~= "" then
+        input.Text = txt
+        setStatus("📋 วาง Key แล้ว กด Unlock", Color3.fromRGB(167, 139, 250))
+    else
+        setStatus("⚠ อ่าน Clipboard ไม่ได้ (executor ต้องรองรับ)")
+    end
+end)
+
+webBtn.MouseButton1Click:Connect(function()
+    pcall(function() setclipboard(WEB_URL) end)
+    setStatus("คัดลอกลิงค์ Discord แล้ว!", Color3.fromRGB(167, 139, 250))
+end)
+
+-- Auto-check clipboard on load
+task.spawn(function()
+    task.wait(0.5)
+    local ok, txt = pcall(function() return tostring(getclipboard()) end)
+    if ok and txt and Keys[txt:gsub("%s","")] then
+        input.Text = txt:gsub("%s","")
+        setStatus("📋 ตรวจพบ Key ใน Clipboard — กด Unlock", Color3.fromRGB(16, 185, 129))
+    end
+end)
+
+print("[DeltaX KeyAuth] Loaded. Ready to execute target script upon correct password.")
