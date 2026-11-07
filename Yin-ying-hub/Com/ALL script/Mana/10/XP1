@@ -17,7 +17,7 @@ local LocalPlayer = Players.LocalPlayer
 local MASTER_PASS = "ZAS_10093"
 local WEB_URL = "https://discord.gg/hkS9VUCQRQ"
 -- ลิงก์สคริปต์ปลายทางที่จะรันหลังจากใส่รหัสผ่านถูกต้อง
-local TARGET_SCRIPT_URL = "https://raw.githubusercontent.com/hacker0030mp/yin-ying-hub/refs/heads/main/Yin-ying-hub/Com/ALL%20script/Mana/10/XCZ.lua"
+local TARGET_SCRIPT_URL = "https://raw.githubusercontent.com/hacker0030mp/yin-ying-hub/refs/heads/main/Yin-ying-hub/Com/Zipper.lua%2C.luau"
 
 local Keys = {
     ["DELTA-2024-XK9A"] = true,
