@@ -1,28 +1,28 @@
--- [[ Script ระบบดาเมจ Nonillion (No) + เช็คการถืออาวุธ/มือเปล่า + UI สำหรับ Delta ]] --
+-- [[ Script ดาเมจหลักของผู้เล่น + ระบบแยกประเภทอาวุธ + UI สำหรับ Delta ]] --
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
--- ลบ UI เก่าทิ้งก่อน (ป้องกันซ้ำซ้อนเวลารันใหม่)
-if playerGui:FindFirstChild("DeltaDamageGui") then
-	playerGui.DeltaDamageGui:Destroy()
+-- ลบ UI เก่าทิ้งเพื่อกันซ้ำซ้อน
+if playerGui:FindFirstChild("PlayerDamageGui") then
+	playerGui.PlayerDamageGui:Destroy()
 end
 
 -- ==========================================
--- 1. ระบบจัดการตัวเลข (Config & Parser)
+-- 1. ฟังก์ชันแปลงตัวเลขสเกลสูง (Nonillion / No)
 -- ==========================================
 local DamageConfig = {}
 DamageConfig.Suffixes = {
-	{ Threshold = 1e30, Suffix = "No" }, -- Nonillion
-	{ Threshold = 1e27, Suffix = "Oc" }, -- Octillion
-	{ Threshold = 1e24, Suffix = "Sp" }, -- Septillion
-	{ Threshold = 1e21, Suffix = "Sx" }, -- Sextillion
-	{ Threshold = 1e18, Suffix = "Qi" }, -- Quintillion
-	{ Threshold = 1e15, Suffix = "Qa" }, -- Quadrillion
-	{ Threshold = 1e12, Suffix = "T"  }, -- Trillion
-	{ Threshold = 1e9,  Suffix = "B"  }, -- Billion
-	{ Threshold = 1e6,  Suffix = "M"  }, -- Million
-	{ Threshold = 1e3,  Suffix = "K"  }, -- Thousand
+	{ Threshold = 1e30, Suffix = "No" },
+	{ Threshold = 1e27, Suffix = "Oc" },
+	{ Threshold = 1e24, Suffix = "Sp" },
+	{ Threshold = 1e21, Suffix = "Sx" },
+	{ Threshold = 1e18, Suffix = "Qi" },
+	{ Threshold = 1e15, Suffix = "Qa" },
+	{ Threshold = 1e12, Suffix = "T"  },
+	{ Threshold = 1e9,  Suffix = "B"  },
+	{ Threshold = 1e6,  Suffix = "M"  },
+	{ Threshold = 1e3,  Suffix = "K"  },
 }
 
 function DamageConfig.Parse(inputText)
@@ -44,43 +44,61 @@ function DamageConfig.Parse(inputText)
 end
 
 -- ==========================================
--- 2. ระบบตรวจสอบอาวุธที่ถืออยู่ในมือ (Tool Check)
+-- 2. ดึงค่าดาเมจหลักของผู้เล่น (จาก Stat ในเกม หรือค่าที่ตั้งไว้)
 -- ==========================================
-local function getEquippedWeaponInfo(character)
-	local tool = character:FindFirstChildOfClass("Tool")
-	if tool then
-		-- ถ้าถืออุปกรณ์อยู่ (เช่น ดาบ)
-		-- คุณสามารถเช็คชื่ออาวุธเพื่อปรับตัวคูณดาเมจได้ เช่น ถ้าถือดาบเทพ คูณดาเมจเพิ่ม 2 เท่า
-		local weaponName = tool.Name
-		local multiplier = 1.0
-		
-		-- ตัวอย่าง: ถ้าถือไอเทมชื่อ "GodSword" ให้ดาเมจคูณ 5 เท่า
-		if weaponName:lower():find("god") or weaponName:lower():find("sword") then
-			multiplier = 5.0 
+local function getPlayerBaseDamage()
+	-- ตรวจสอบว่าในตัวผู้เล่นมีค่า Stat ดาเมจสะสมอยู่ไหม (เช่น leaderstats -> Damage หรือ Strength)
+	local leaderstats = player:FindFirstChild("leaderstats")
+	if leaderstats then
+		local statDamage = leaderstats:FindFirstChild("Damage") or leaderstats:FindFirstChild("Strength") or leaderstats:FindFirstChild("Dmg")
+		if statDamage and tonumber(statDamage.Value) then
+			return tonumber(statDamage.Value)
 		end
-		
-		return true, weaponName, multiplier
+	end
+	
+	-- ถ้าไม่มีค่า Stat ใน leaderstats ให้คืนค่าเริ่มต้นเป็น 0 (เพื่อให้ใช้ค่าที่พิมพ์ในช่อง UI แทน)
+	return 0
+end
+
+-- ==========================================
+-- 3. ตรวจสอบอาวุธ / มือเปล่า และกำหนดตัวคูณ
+-- ==========================================
+local function getWeaponInfo(character)
+	local tool = character:FindFirstChildOfClass("Tool")
+	if not tool then
+		-- กรณี: มือเปล่า (ไม่มีอาวุธ)
+		return "มือเปล่า (Unarmed)", "Melee", 0.5, 12 -- ชื่อ, ประเภท, ตัวคูณ, ระยะโจมตี
+	end
+
+	local name = tool.Name:lower()
+
+	-- อาวุธระยะไกล (ปืนต่างๆ)
+	if name:find("gun") or name:find("pistol") or name:find("rifle") or name:find("shotgun") or name:find("sniper") or name:find("ปืน") then
+		return tool.Name, "Ranged (ปืนระยะไกล)", 2.0, 50
+	
+	-- อาวุธระยะประชิด (ดาบ, มีด)
+	elseif name:find("knife") or name:find("sword") or name:find("blade") or name:find("axe") or name:find("มีด") or name:find("ดาบ") then
+		return tool.Name, "Melee (ระยะประชิด)", 1.2, 15
+	
 	else
-		-- ถ้ามือเปล่า (ไม่ได้ถืออะไรเลย)
-		-- ดาเมจมือเปล่าอาจจะถูกกำหนดให้ลดลงเหลือ 10% หรือใช้ค่าปกติ
-		return false, "มือเปล่า (Unarmed)", 0.1 
+		return tool.Name, "Melee (ทั่วไป)", 1.0, 15
 	end
 end
 
 -- ==========================================
--- 3. สร้างหน้าต่าง UI บน Delta
+-- 4. สร้างหน้าต่าง UI
 -- ==========================================
-local currentTargetMode = "NPC" -- ค่าเริ่มต้นเลือก NPC
+local currentTargetMode = "NPC"
 
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "DeltaDamageGui"
+screenGui.Name = "PlayerDamageGui"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = playerGui
 
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 240, 0, 190)
-mainFrame.Position = UDim2.new(0.5, -120, 0.35, 0)
-mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+mainFrame.Size = UDim2.new(0, 250, 0, 220)
+mainFrame.Position = UDim2.new(0.5, -125, 0.32, 0)
+mainFrame.BackgroundColor3 = Color3.fromRGB(22, 22, 30)
 mainFrame.BorderSizePixel = 0
 mainFrame.Active = true
 mainFrame.Draggable = true
@@ -90,13 +108,12 @@ local corner = Instance.new("UICorner")
 corner.CornerRadius = UDim.new(0, 10)
 corner.Parent = mainFrame
 
--- หัวข้อ UI
 local titleLabel = Instance.new("TextLabel")
 titleLabel.Size = UDim2.new(1, 0, 0, 30)
-titleLabel.BackgroundColor3 = Color3.fromRGB(35, 35, 50)
+titleLabel.BackgroundColor3 = Color3.fromRGB(32, 32, 45)
 titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-titleLabel.Text = "⚡ WEAPON & DAMAGE SYSTEM"
-titleLabel.TextSize = 12
+titleLabel.Text = "⚡ PLAYER STAT & WEAPON DAMAGE"
+titleLabel.TextSize = 11
 titleLabel.Font = Enum.Font.SourceSansBold
 titleLabel.Parent = mainFrame
 
@@ -104,10 +121,10 @@ local titleCorner = Instance.new("UICorner")
 titleCorner.CornerRadius = UDim.new(0, 10)
 titleCorner.Parent = titleLabel
 
--- ช่องใส่ค่าดาเมจ
+-- ช่องใส่ค่าดาเมจ (หรือปรับแต่งดาเมจ)
 local inputTextBox = Instance.new("TextBox")
 inputTextBox.Size = UDim2.new(0.88, 0, 0, 32)
-inputTextBox.Position = UDim2.new(0.06, 0, 0.20, 0)
+inputTextBox.Position = UDim2.new(0.06, 0, 0.16, 0)
 inputTextBox.BackgroundColor3 = Color3.fromRGB(15, 15, 22)
 inputTextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
 inputTextBox.PlaceholderText = "ใส่ค่าดาเมจ (เช่น 1No, 100)"
@@ -121,18 +138,18 @@ local inputCorner = Instance.new("UICorner")
 inputCorner.CornerRadius = UDim.new(0, 6)
 inputCorner.Parent = inputTextBox
 
--- ข้อความแสดงสถานะอาวุธปัจจุบัน
+-- ข้อความแสดงสถานะดาเมจตัวละครและอาวุธ
 local statusLabel = Instance.new("TextLabel")
-statusLabel.Size = UDim2.new(0.88, 0, 0, 22)
-statusLabel.Position = UDim2.new(0.06, 0, 0.40, 0)
+statusLabel.Size = UDim2.new(0.88, 0, 0, 28)
+statusLabel.Position = UDim2.new(0.06, 0, 0.34, 0)
 statusLabel.BackgroundTransparency = 1
-statusLabel.TextColor3 = Color3.fromRGB(200, 200, 100)
+statusLabel.TextColor3 = Color3.fromRGB(150, 220, 255)
 statusLabel.TextSize = 11
 statusLabel.Font = Enum.Font.SourceSansItalic
-statusLabel.Text = "กำลังตรวจสอบอุปกรณ์..."
+statusLabel.Text = "กำลังคำนวณดาเมจผู้เล่น..."
 statusLabel.Parent = mainFrame
 
--- ปุ่ม Toggle สลับเป้าหมาย (NPC / Player)
+-- ปุ่ม Toggle เป้าหมาย (NPC / Player)
 local toggleBtn = Instance.new("TextButton")
 toggleBtn.Size = UDim2.new(0.88, 0, 0, 30)
 toggleBtn.Position = UDim2.new(0.06, 0, 0.52, 0)
@@ -147,9 +164,9 @@ local toggleCorner = Instance.new("UICorner")
 toggleCorner.CornerRadius = UDim.new(0, 6)
 toggleCorner.Parent = toggleBtn
 
--- ปุ่มทำดาเมจ
+-- ปุ่ม Execute Damage
 local dealDamageBtn = Instance.new("TextButton")
-dealDamageBtn.Size = UDim2.new(0.88, 0, 0, 35)
+dealDamageBtn.Size = UDim2.new(0.88, 0, 0, 36)
 dealDamageBtn.Position = UDim2.new(0.06, 0, 0.73, 0)
 dealDamageBtn.BackgroundColor3 = Color3.fromRGB(220, 50, 50)
 dealDamageBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -163,44 +180,44 @@ btnCorner.CornerRadius = UDim.new(0, 6)
 btnCorner.Parent = dealDamageBtn
 
 -- ==========================================
--- 4. อัปเดตสถานะอาวุธแบบเรียลไทม์
+-- 5. อัปเดตข้อมูล UI แบบเรียลไทม์
 -- ==========================================
-local function updateWeaponUI()
-	local character = player.Character
-	if character then
-		local isHolding, weaponName, multiplier = getEquippedWeaponInfo(character)
-		if isHolding then
-			statusLabel.Text = "⚔️ ถือ: " .. weaponName .. " (x" .. multiplier .. ")"
-			statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+local function updateUIStatus()
+	local char = player.Character
+	if char then
+		local wName, wType, mult, range = getWeaponInfo(char)
+		local baseDmg = getPlayerBaseDamage()
+		
+		if baseDmg > 0 then
+			statusLabel.Text = string.format("📊 ดาเมจตัวละคร: %.1e | อุปกรณ์: %s", baseDmg, wName)
 		else
-			statusLabel.Text = "✊ มือเปล่า (ดาเมจปกติ/ลดลง)"
+			statusLabel.Text = string.format("🛡️ อุปกรณ์: %s (ตัวคูณ x%.1f)", wName, mult)
+		end
+		
+		if wType:find("Ranged") then
+			statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+		elseif wType:find("Melee") and wName ~= "มือเปล่า (Unarmed)" then
+			statusLabel.TextColor3 = Color3.fromRGB(255, 220, 100)
+		else
 			statusLabel.TextColor3 = Color3.fromRGB(255, 150, 100)
 		end
 	end
 end
 
--- อัปเดตทุกครั้งที่เปลี่ยนอุปกรณ์ในมือ
+-- คอยดักฟังตอนเปลี่ยนอาวุธ
 player.CharacterAdded:Connect(function(char)
-	char.ChildAdded:Connect(function(child)
-		if child:IsA("Tool") then task.wait(0.1) updateWeaponUI() end
-	end)
-	char.ChildRemoved:Connect(function(child)
-		if child:IsA("Tool") then task.wait(0.1) updateWeaponUI() end
-	end)
+	char.ChildAdded:Connect(function(c) if c:IsA("Tool") then task.wait(0.1) updateUIStatus() end end)
+	char.ChildRemoved:Connect(function(c) if c:IsA("Tool") then task.wait(0.1) updateUIStatus() end end)
 end)
 
 if player.Character then
-	updateWeaponUI()
-	player.Character.ChildAdded:Connect(function(child)
-		if child:IsA("Tool") then task.wait(0.1) updateWeaponUI() end
-	end)
-	player.Character.ChildRemoved:Connect(function(child)
-		if child:IsA("Tool") then task.wait(0.1) updateWeaponUI() end
-	end)
+	updateUIStatus()
+	player.Character.ChildAdded:Connect(function(c) if c:IsA("Tool") then task.wait(0.1) updateUIStatus() end end)
+	player.Character.ChildRemoved:Connect(function(c) if c:IsA("Tool") then task.wait(0.1) updateUIStatus() end end)
 end
 
 -- ==========================================
--- 5. ระบบกดปุ่มทำดาเมจ (คิดรวมตัวคูณอาวุธ)
+-- 6. ระบบกดปุ่มทำดาเมจ
 -- ==========================================
 toggleBtn.MouseButton1Click:Connect(function()
 	if currentTargetMode == "NPC" then
@@ -215,15 +232,20 @@ toggleBtn.MouseButton1Click:Connect(function()
 end)
 
 dealDamageBtn.MouseButton1Click:Connect(function()
-	local baseDamage = DamageConfig.Parse(inputTextBox.Text)
-	local character = player.Character
-	if not character then return end
-	local rootPart = character:FindFirstChild("HumanoidRootPart")
+	local inputDamage = DamageConfig.Parse(inputTextBox.Text)
+	local baseStatDamage = getPlayerBaseDamage()
+	
+	-- หากมีค่า Stat ดาเมจในตัวผู้เล่น ให้เอามาบวก/รวมกัน หรือใช้ค่าที่พิมพ์ หากไม่มี Stat
+	local coreDamage = (baseStatDamage > 0) and baseStatDamage or inputDamage
+	
+	local char = player.Character
+	if not char then return end
+	local rootPart = char:FindFirstChild("HumanoidRootPart")
 	if not rootPart then return end
 
-	-- เช็คว่าถืออาวุธไหม และรับตัวคูณดาเมจ
-	local isHolding, weaponName, multiplier = getEquippedWeaponInfo(character)
-	local finalDamage = baseDamage * multiplier -- ดาเมจสุทธิคูณตามอาวุธที่ถือ
+	-- ดึงข้อมูลอาวุธและตัวคูณ
+	local wName, wType, multiplier, maxRange = getWeaponInfo(char)
+	local finalDamage = coreDamage * multiplier -- ดาเมจสุทธิ (ดาเมจตัวละคร/ที่พิมพ์ x ตัวคูณอาวุธหรือมือเปล่า)
 
 	local hitCount = 0
 
@@ -231,9 +253,9 @@ dealDamageBtn.MouseButton1Click:Connect(function()
 		local humanoid = object:FindFirstChildOfClass("Humanoid")
 		local targetRoot = object:FindFirstChild("HumanoidRootPart") or object:FindFirstChild("PrimaryPart")
 
-		if humanoid and targetRoot and humanoid.Health > 0 and object ~= character then
+		if humanoid and targetRoot and humanoid.Health > 0 and object ~= char then
 			local distance = (targetRoot.Position - rootPart.Position).Magnitude
-			if distance <= 25 then
+			if distance <= maxRange then
 				local isPlayer = Players:GetPlayerFromCharacter(object) ~= nil
 
 				if currentTargetMode == "NPC" and not isPlayer then
@@ -247,8 +269,8 @@ dealDamageBtn.MouseButton1Click:Connect(function()
 		end
 	end
 
-	print(string.format("🔥 [Mode: %s] อุปกรณ์: %s | โจมตีโดน %d เป้าหมาย | ดาเมจรุนแรง: %.2e", 
-		currentTargetMode, weaponName, hitCount, finalDamage))
+	print(string.format("🎯 [Mode: %s] | อาวุธ: %s | โดน %d เป้าหมาย | ดาเมจสุทธิ: %.2e", 
+		currentTargetMode, wName, hitCount, finalDamage))
 end)
 
-print("✅ โหลดระบบเช็คอาวุธและดาเมจสำเร็จ!")
+print("✅ โหลดระบบดาเมจตัวละคร + อาวุธสำเร็จ!")
