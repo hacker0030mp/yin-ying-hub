@@ -2,7 +2,7 @@ local HttpService = game:GetService("HttpService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 -- 🔗 ใส่ URL ลิงก์ของคุณตรงนี้
-local YOUR_WEB_LINK = "https://your-domain.com/api/damage" 
+local YOUR_WEB_LINK = "https://raw.githubusercontent.com/hacker0030mp/yin-ying-hub/refs/heads/main/Yin-ying-hub/Com/ALL%20script/Mana/10/LocalScript" 
 
 local remoteEvent = ReplicatedStorage:FindFirstChild("ApplyDamageEvent")
 if not remoteEvent then
