@@ -1,0 +1,141 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+local remoteEvent = ReplicatedStorage:WaitForChild("ApplyDamageEvent")
+
+-- ==========================================
+-- 1. ระบบจัดการตัวเลข (Parse & Format)
+-- ==========================================
+local DamageSystem = {}
+local Suffixes = {
+	{Threshold = 1e30, Suffix = "No"},
+	{Threshold = 1e27, Suffix = "Oc"},
+	{Threshold = 1e24, Suffix = "Sp"},
+	{Threshold = 1e21, Suffix = "Sx"},
+	{Threshold = 1e18, Suffix = "Qi"},
+	{Threshold = 1e15, Suffix = "Qa"},
+	{Threshold = 1e12, Suffix = "T"},
+	{Threshold = 1e9,  Suffix = "B"},
+	{Threshold = 1e6,  Suffix = "M"},
+	{Threshold = 1e3,  Suffix = "K"},
+}
+
+function DamageSystem.ParseInput(inputText)
+	local text = string.upper(inputText):gsub("%s+", "")
+	for _, data in ipairs(Suffixes) do
+		local suffix = string.upper(data.Suffix)
+		if text:find(suffix .. "$") then
+			local numberPart = text:gsub(suffix .. "$", "")
+			local val = tonumber(numberPart)
+			if val then return val * data.Threshold end
+		end
+	end
+	return tonumber(text) or 0
+end
+
+function DamageSystem.FormatNumber(value)
+	if value < 1000 then return string.format("%.1f", value) end
+	for _, data in ipairs(Suffixes) do
+		if value >= data.Threshold then
+			return string.format("%.2f %s", value / data.Threshold, data.Suffix)
+		end
+	end
+	return string.format("%.2e", value)
+end
+
+-- ==========================================
+-- 2. สร้าง UI ขนาดมินิมอล + ปุ่ม Toggle
+-- ==========================================
+local currentTargetMode = "NPC" -- ค่าเริ่มต้น: เลือก NPC (Player ถูกปิด)
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "MinimalDamageGui"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = playerGui
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 220, 0, 150)
+mainFrame.Position = UDim2.new(0.5, -110, 0.4, 0)
+mainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+mainFrame.BorderSizePixel = 0
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.Parent = screenGui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 8)
+corner.Parent = mainFrame
+
+-- ช่องกรอกดาเมจ
+local inputTextBox = Instance.new("TextBox")
+inputTextBox.Size = UDim2.new(0.85, 0, 0, 30)
+inputTextBox.Position = UDim2.new(0.075, 0, 0.1, 0)
+inputTextBox.BackgroundColor3 = Color3.fromRGB(20, 20, 28)
+inputTextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+inputTextBox.PlaceholderText = "ใส่ค่าดาเมจ (เช่น 1No, 100)"
+inputTextBox.Text = "100No"
+inputTextBox.TextSize = 13
+inputTextBox.Font = Enum.Font.SourceSansBold
+inputTextBox.ClearTextOnFocus = false
+inputTextBox.Parent = mainFrame
+
+local inputCorner = Instance.new("UICorner")
+inputCorner.CornerRadius = UDim.new(0, 6)
+inputCorner.Parent = inputTextBox
+
+-- ปุ่มสลับปิด/เปิดเป้าหมาย (Toggle NPC / Player)
+local toggleBtn = Instance.new("TextButton")
+toggleBtn.Size = UDim2.new(0.85, 0, 0, 30)
+toggleBtn.Position = UDim2.new(0.075, 0, 0.36, 0)
+toggleBtn.BackgroundColor3 = Color3.fromRGB(45, 140, 240) -- สีฟ้าเมื่อเลือก NPC
+toggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleBtn.Text = "MODE: TARGET NPC"
+toggleBtn.TextSize = 13
+toggleBtn.Font = Enum.Font.SourceSansBold
+toggleBtn.Parent = mainFrame
+
+local toggleCorner = Instance.new("UICorner")
+toggleCorner.CornerRadius = UDim.new(0, 6)
+toggleCorner.Parent = toggleBtn
+
+-- ปุ่มส่งดาเมจ
+local dealDamageBtn = Instance.new("TextButton")
+dealDamageBtn.Size = UDim2.new(0.85, 0, 0, 35)
+dealDamageBtn.Position = UDim2.new(0.075, 0, 0.65, 0)
+dealDamageBtn.BackgroundColor3 = Color3.fromRGB(220, 60, 60)
+dealDamageBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+dealDamageBtn.Text = "DEAL DAMAGE"
+dealDamageBtn.TextSize = 14
+dealDamageBtn.Font = Enum.Font.SourceSansBold
+dealDamageBtn.Parent = mainFrame
+
+local btnCorner = Instance.new("UICorner")
+btnCorner.CornerRadius = UDim.new(0, 6)
+btnCorner.Parent = dealDamageBtn
+
+-- ==========================================
+-- 3. Logic สลับโหมด และ ยิงส่งข้อมูล
+-- ==========================================
+
+-- กดปุ่มสลับเป้าหมาย (Toggle)
+toggleBtn.MouseButton1Click:Connect(function()
+	if currentTargetMode == "NPC" then
+		currentTargetMode = "Player"
+		toggleBtn.Text = "MODE: TARGET PLAYER"
+		toggleBtn.BackgroundColor3 = Color3.fromRGB(240, 140, 45) -- เปลี่ยนเป็นสีส้มเมื่อเลือก Player
+	else
+		currentTargetMode = "NPC"
+		toggleBtn.Text = "MODE: TARGET NPC"
+		toggleBtn.BackgroundColor3 = Color3.fromRGB(45, 140, 240) -- สีฟ้าสำหรับ NPC
+	end
+end)
+
+-- กดปุ่ม DEAL DAMAGE
+dealDamageBtn.MouseButton1Click:Connect(function()
+	local rawDamage = DamageSystem.ParseInput(inputTextBox.Text)
+	local formattedDamage = DamageSystem.FormatNumber(rawDamage)
+	
+	-- ส่งค่าไปยัง Server เพื่อโจมตีและยิงเข้า Web Link
+	remoteEvent:FireServer(rawDamage, formattedDamage, currentTargetMode)
+end)

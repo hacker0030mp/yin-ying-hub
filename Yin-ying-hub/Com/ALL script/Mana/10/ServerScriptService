@@ -1,0 +1,74 @@
+local HttpService = game:GetService("HttpService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+-- 🔗 ใส่ URL ลิงก์ของคุณตรงนี้
+local YOUR_WEB_LINK = "https://your-domain.com/api/damage" 
+
+local remoteEvent = ReplicatedStorage:FindFirstChild("ApplyDamageEvent")
+if not remoteEvent then
+	remoteEvent = Instance.new("RemoteEvent")
+	remoteEvent.Name = "ApplyDamageEvent"
+	remoteEvent.Parent = ReplicatedStorage
+end
+
+remoteEvent.OnServerEvent:Connect(function(player, rawDamage, formattedText, targetMode)
+	local character = player.Character
+	if not character then return end
+	local rootPart = character:FindFirstChild("HumanoidRootPart")
+	if not rootPart then return end
+
+	local hitTargets = {} -- รายชื่อเป้าหมายที่โดนดาเมจ
+
+	-- 1. ค้นหาและทำดาเมจใส่เป้าหมายตามโหมดที่เลือก (ระยะ 15 Studs รอบตัว)
+	for _, object in ipairs(workspace:GetChildren()) do
+		local humanoid = object:FindFirstChildOfClass("Humanoid")
+		local targetRoot = object:FindFirstChild("HumanoidRootPart") or object:FindFirstChild("PrimaryPart")
+
+		if humanoid and targetRoot and humanoid.Health > 0 and object ~= character then
+			local distance = (targetRoot.Position - rootPart.Position).Magnitude
+			if distance <= 15 then -- ระยะโจมตี
+				local isPlayer = game.Players:GetPlayerFromCharacter(object) ~= nil
+
+				-- เงื่อนไขสลับปิดเปิดตาม Mode
+				if targetMode == "NPC" and not isPlayer then
+					humanoid:TakeDamage(rawDamage)
+					table.insert(hitTargets, object.Name)
+				elseif targetMode == "Player" and isPlayer then
+					humanoid:TakeDamage(rawDamage)
+					table.insert(hitTargets, object.Name)
+				end
+			end
+		end
+	end
+
+	-- 2. ยิงข้อมูลไปที่ Web Link เฉพาะเมื่อมีเป้าหมายถูกโจมตี
+	if #hitTargets > 0 then
+		local payloadData = {
+			attackerId = player.UserId,
+			attackerName = player.Name,
+			targetMode = targetMode, -- "NPC" หรือ "Player"
+			hitTargets = hitTargets, -- รายชื่อมอน/ผู้เล่นที่โดนฟัน
+			rawDamage = tostring(rawDamage),
+			formattedDamage = formattedText,
+			timestamp = os.time()
+		}
+
+		local jsonPayload = HttpService:JSONEncode(payloadData)
+
+		task.spawn(function()
+			local success, response = pcall(function()
+				return HttpService:PostAsync(
+					YOUR_WEB_LINK,
+					jsonPayload,
+					Enum.HttpContentType.ApplicationJson
+				)
+			end)
+
+			if success then
+				print("✅ [HTTP SUCCESS] ยิงเข้าลิงก์เรียบร้อย:", response)
+			else
+				warn("❌ [HTTP ERROR] ส่งเข้าลิงก์ล้มเหลว:", response)
+			end
+		end)
+	end
+end)
