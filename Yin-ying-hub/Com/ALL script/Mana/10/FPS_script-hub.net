@@ -64,7 +64,7 @@ local Tabs = {
 local Options = Fluent.Options
 
 -- ==========================================
--- ระบบวงกลมลอยตัวแสดง FPS / Ping (Widget)
+-- ระบบโหมดย่อหน้าต่างเป็นวงกลมลอยตัว (Widget)
 -- ==========================================
 local CoreGui = game:GetService("CoreGui")
 local RunService = game:GetService("RunService")
@@ -94,7 +94,7 @@ CircleFrame.BorderSizePixel = 0
 CircleFrame.Text = ""
 CircleFrame.Visible = false
 CircleFrame.Active = true
-CircleFrame.Draggable = true
+CircleFrame.Draggable = true -- สามารถลากไปไหนก็ได้บนหน้าจอ
 
 local UICorner = Instance.new("UICorner")
 UICorner.CornerRadius = UDim.new(1, 0)
@@ -145,6 +145,7 @@ RunService.RenderStepped:Connect(function(dt)
     end
 end)
 
+-- กดวงกลมเพื่อเปิด/ปิดสลับหน้าต่างหลัก
 CircleFrame.MouseButton1Click:Connect(function()
     Window:Minimize()
 end)
