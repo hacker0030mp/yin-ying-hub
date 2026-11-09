@@ -1,0 +1,292 @@
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
+local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+
+-- ==========================================
+-- ระบบพจนานุกรมแปลภาษา (Localization System: Thai / English)
+-- ==========================================
+local Languages = {
+    English = {
+        WindowTitle = "FPS Combat Hub v",
+        WindowSubTitle = "Advanced Shooting Suite",
+        MainTab = "Main",
+        AimbotTab = "Aimbot",
+        VisualsTab = "Visuals",
+        WeaponTab = "Weapon",
+        PlayerTab = "Player",
+        SettingsTab = "Settings",
+        -- Language Settings
+        LangTitle = "Language / ภาษา",
+        LangDesc = "Select UI Language (Thai / English)",
+        -- Aimbot
+        AimbotTitle = "Aimbot",
+        AimbotDesc = "Automatically aim at enemies",
+        SilentAimTitle = "Silent Aim",
+        TriggerBotTitle = "Trigger Bot",
+        AimPartTitle = "Target Part",
+        AimSmoothTitle = "Aim Smoothness",
+        FovSizeTitle = "FOV Radius",
+        ShowFovTitle = "Show FOV Circle",
+        -- Visuals (ESP)
+        EspBoxTitle = "Player Box ESP",
+        EspNameTitle = "Name ESP",
+        EspHealthTitle = "Health Bar ESP",
+        EspDistanceTitle = "Distance ESP",
+        ChamsTitle = "Chams / Wallhack",
+        FullbrightTitle = "Fullbright (No Dark)",
+        -- Weapon Mods
+        NoRecoilTitle = "No Recoil",
+        NoSpreadTitle = "No Spread",
+        InfiniteAmmoTitle = "Infinite Ammo",
+        FastFireRateTitle = "Fast Fire Rate",
+        InstantReloadTitle = "Instant Reload",
+        DamageMultiplierTitle = "Damage Multiplier",
+        -- Player Mods
+        SpeedTitle = "WalkSpeed Hack",
+        JumpTitle = "JumpPower Hack",
+        FlyTitle = "Fly Mode",
+        NoclipTitle = "Noclip (Walk Through Walls)",
+        BhopTitle = "Bunny Hop (Auto Jump)",
+        -- General
+        NotifyTitle = "FPS Hub",
+        LoadedMsg = "FPS Script Hub loaded successfully!",
+        ConfirmBtn = "Confirm",
+        CancelBtn = "Cancel"
+    },
+    Thai = {
+        WindowTitle = "ระบบสคริปต์ FPS v",
+        WindowSubTitle = "ชุดคำสั่งเกมยิงปืนขั้นสูง",
+        MainTab = "หน้าหลัก",
+        AimbotTab = "ล็อกเป้า",
+        VisualsTab = "การมองเห็น",
+        WeaponTab = "ปรับแต่งปืน",
+        PlayerTab = "ผู้เล่น",
+        SettingsTab = "การตั้งค่า",
+        -- Language Settings
+        LangTitle = "ภาษา / Language",
+        LangDesc = "เลือกภาษาของเมนู (ไทย / English)",
+        -- Aimbot
+        AimbotTitle = "ระบบล็อกเป้า (Aimbot)",
+        AimbotDesc = "ล็อกเป้าศัตรูอัตโนมัติ",
+        SilentAimTitle = "ไซเลนต์เอม (ยิงโดนไม่ต้องเล็งตรง)",
+        TriggerBotTitle = "ลั่นไกอัตโนมัติ (Trigger Bot)",
+        AimPartTitle = "ส่วนที่ต้องการล็อก",
+        AimSmoothTitle = "ความเนียนในการล็อกเป้า",
+        FovSizeTitle = "ขนาดวงกลม FOV",
+        ShowFovTitle = "แสดงวงกลม FOV",
+        -- Visuals (ESP)
+        EspBoxTitle = "กรอบบอกตำแหน่ง (Box ESP)",
+        EspNameTitle = "แสดงชื่อผู้เล่น",
+        EspHealthTitle = "แถบเลือด (Health Bar)",
+        EspDistanceTitle = "ระยะห่างศัตรู (Distance)",
+        ChamsTitle = "มองทะลุกำแพง (Chams)",
+        FullbrightTitle = "สว่างทั่วแผนที่ (No Dark)",
+        -- Weapon Mods
+        NoRecoilTitle = "ลดแรงดีดปืนเป็นศูนย์ (No Recoil)",
+        NoSpreadTitle = "กระสุนไม่กระจาย (No Spread)",
+        InfiniteAmmoTitle = "กระสุนไม่จำกัด (Infinite Ammo)",
+        FastFireRateTitle = "ยิงเร็วพิเศษ (Fast Fire Rate)",
+        InstantReloadTitle = "รีโหลดกระสุนทันที (Instant Reload)",
+        DamageMultiplierTitle = "เพิ่มความรุนแรงกระสุน",
+        -- Player Mods
+        SpeedTitle = "ปรับความเร็วเดิน",
+        JumpTitle = "ปรับแรงกระโดด",
+        FlyTitle = "โหมดบิน (Fly)",
+        NoclipTitle = "เดินทะลุกำแพง (Noclip)",
+        BhopTitle = "กระโดดต่อเนื่อง (Bunny Hop)",
+        -- General
+        NotifyTitle = "เอฟพีเอส ฮับ",
+        LoadedMsg = "โหลดสคริปต์ FPS สำเร็จเรียบร้อย!",
+        ConfirmBtn = "ยืนยัน",
+        CancelBtn = "ยกเลิก"
+    }
+}
+
+local CurrentLang = Languages.Thai -- ตั้งค่าเริ่มต้นเป็นภาษาไทย
+
+-- สร้างหน้าต่างหลัก (Window)
+local Window = Fluent:CreateWindow({
+    Title = CurrentLang.WindowTitle .. Fluent.Version,
+    SubTitle = CurrentLang.WindowSubTitle,
+    TabWidth = 160,
+    Size = UDim2.fromOffset(580, 460),
+    Acrylic = true,
+    Theme = "Dark",
+    MinimizeKey = Enum.KeyCode.LeftControl
+})
+
+-- สร้าง Tabs (หมวดหมู่ทั้งหมดสำหรับเกม FPS)
+local Tabs = {
+    Main = Window:AddTab({ Title = CurrentLang.MainTab, Icon = "home" }),
+    Aimbot = Window:AddTab({ Title = CurrentLang.AimbotTab, Icon = "crosshair" }),
+    Visuals = Window:AddTab({ Title = CurrentLang.VisualsTab, Icon = "eye" }),
+    Weapon = Window:AddTab({ Title = CurrentLang.WeaponTab, Icon = "zap" }),
+    Player = Window:AddTab({ Title = CurrentLang.PlayerTab, Icon = "user" }),
+    Settings = Window:AddTab({ Title = CurrentLang.SettingsTab, Icon = "settings" })
+}
+
+local Options = Fluent.Options
+
+-- ==========================================
+-- 1. TAB: หน้าหลัก (Main)
+-- ==========================================
+do
+    Fluent:Notify({
+        Title = CurrentLang.NotifyTitle,
+        Content = CurrentLang.LoadedMsg,
+        Duration = 5
+    })
+
+    Tabs.Main:AddParagraph({
+        Title = "ยินดีต้อนรับสู่ FPS Combat Suite",
+        Content = "สคริปต์นี้ถูกออกแบบมาสำหรับเกมแนวยิงปืน (FPS/Shooting)\nรองรับการตั้งค่าภาษาไทยและอังกฤษแบบเรียลไทม์"
+    })
+
+    Tabs.Main:AddButton({
+        Title = "รีเซ็ตตัวละคร (Reset Character)",
+        Description = "ฆ่าตัวตายเพื่อกลับจุดเกิดใหม่",
+        Callback = function()
+            pcall(function()
+                game.Players.LocalPlayer.Character.Humanoid.Health = 0
+            end)
+        end
+    })
+
+    Tabs.Main:AddToggle("FPSBoostToggle", { Title = "เปิดใช้งาน FPS Booster (ลดแลค)", Default = false })
+end
+
+-- ==========================================
+-- 2. TAB: ล็อกเป้า (Aimbot)
+-- ==========================================
+do
+    Tabs.Aimbot:AddToggle("AimbotToggle", { Title = CurrentLang.AimbotTitle, Default = false })
+    Tabs.Aimbot:AddToggle("SilentAimToggle", { Title = CurrentLang.SilentAimTitle, Default = false })
+    Tabs.Aimbot:AddToggle("TriggerBotToggle", { Title = CurrentLang.TriggerBotTitle, Default = false })
+
+    Tabs.Aimbot:AddDropdown("AimPartDropdown", {
+        Title = CurrentLang.AimPartTitle,
+        Values = {"Head (หัว)", "HumanoidRootPart (ลำตัว)", "UpperTorso"},
+        Multi = false,
+        Default = 1
+    })
+
+    Tabs.Aimbot:AddSlider("AimSmoothSlider", {
+        Title = CurrentLang.AimSmoothTitle,
+        Default = 5, Min = 1, Max = 20, Rounding = 1
+    })
+
+    Tabs.Aimbot:AddToggle("ShowFovToggle", { Title = CurrentLang.ShowFovTitle, Default = true })
+    
+    Tabs.Aimbot:AddSlider("FovSizeSlider", {
+        Title = CurrentLang.FovSizeTitle,
+        Default = 100, Min = 20, Max = 500, Rounding = 0
+    })
+end
+
+-- ==========================================
+-- 3. TAB: การมองเห็น (Visuals / ESP)
+-- ==========================================
+do
+    Tabs.Visuals:AddToggle("EspBoxToggle", { Title = CurrentLang.EspBoxTitle, Default = false })
+    Tabs.Visuals:AddToggle("EspNameToggle", { Title = CurrentLang.EspNameTitle, Default = false })
+    Tabs.Visuals:AddToggle("EspHealthToggle", { Title = CurrentLang.EspHealthTitle, Default = false })
+    Tabs.Visuals:AddToggle("EspDistanceToggle", { Title = CurrentLang.EspDistanceTitle, Default = false })
+    Tabs.Visuals:AddToggle("ChamsToggle", { Title = CurrentLang.ChamsTitle, Default = false })
+    Tabs.Visuals:AddToggle("FullbrightToggle", { Title = CurrentLang.FullbrightTitle, Default = false })
+
+    Tabs.Visuals:AddColorpicker("EspColorPicker", {
+        Title = "สีของ ESP (Box Color)",
+        Default = Color3.fromRGB(255, 0, 0)
+    })
+end
+
+-- ==========================================
+-- 4. TAB: ปรังแต่งปืน (Weapon Mods)
+-- ==========================================
+do
+    Tabs.Weapon:AddToggle("NoRecoilToggle", { Title = CurrentLang.NoRecoilTitle, Default = false })
+    Tabs.Weapon:AddToggle("NoSpreadToggle", { Title = CurrentLang.NoSpreadTitle, Default = false })
+    Tabs.Weapon:AddToggle("InfiniteAmmoToggle", { Title = CurrentLang.InfiniteAmmoTitle, Default = false })
+    Tabs.Weapon:AddToggle("FastFireRateToggle", { Title = CurrentLang.FastFireRateTitle, Default = false })
+    Tabs.Weapon:AddToggle("InstantReloadToggle", { Title = CurrentLang.InstantReloadTitle, Default = false })
+
+    Tabs.Weapon:AddSlider("DamageMultiplierSlider", {
+        Title = CurrentLang.DamageMultiplierTitle,
+        Default = 1, Min = 1, Max = 10, Rounding = 0
+    })
+end
+
+-- ==========================================
+-- 5. TAB: ผู้เล่น (Player Movement)
+-- ==========================================
+do
+    Tabs.Player:AddSlider("WalkSpeedSlider", {
+        Title = CurrentLang.SpeedTitle,
+        Default = 16, Min = 16, Max = 300, Rounding = 0,
+        Callback = function(Value)
+            pcall(function()
+                game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = Value
+            end)
+        end
+    })
+
+    Tabs.Player:AddSlider("JumpPowerSlider", {
+        Title = CurrentLang.JumpTitle,
+        Default = 50, Min = 50, Max = 350, Rounding = 0,
+        Callback = function(Value)
+            pcall(function()
+                game.Players.LocalPlayer.Character.Humanoid.JumpPower = Value
+            end)
+        end
+    })
+
+    Tabs.Player:AddToggle("FlyToggle", { Title = CurrentLang.FlyTitle, Default = false })
+    Tabs.Player:AddToggle("NoclipToggle", { Title = CurrentLang.NoclipTitle, Default = false })
+    Tabs.Player:AddToggle("BhopToggle", { Title = CurrentLang.BhopTitle, Default = false })
+end
+
+-- ==========================================
+-- 6. TAB: การตั้งค่า (Settings & Language Switcher)
+-- ==========================================
+local LangDropdown = Tabs.Settings:AddDropdown("LanguageSelector", {
+    Title = "ภาษา / Language",
+    Description = "เลือกภาษาของระบบ (Choose UI Language)",
+    Values = {"ไทย (Thai)", "English"},
+    Multi = false,
+    Default = 1
+})
+
+LangDropdown:OnChanged(function(Value)
+    if Value == "ไทย (Thai)" then
+        CurrentLang = Languages.Thai
+        Fluent:Notify({ Title = "ภาษา", Content = "เปลี่ยนเป็นภาษาไทยเรียบร้อยแล้ว", Duration = 3 })
+    elseif Value == "English" then
+        CurrentLang = Languages.English
+        Fluent:Notify({ Title = "Language", Content = "Language successfully set to English", Duration = 3 })
+    end
+end)
+
+-- ==========================================
+-- ระบบบันทึก (SaveManager & InterfaceManager)
+-- ==========================================
+SaveManager:SetLibrary(Fluent)
+InterfaceManager:SetLibrary(Fluent)
+
+SaveManager:IgnoreThemeSettings()
+SaveManager:SetIgnoreIndexes({"LanguageSelector"})
+
+InterfaceManager:SetFolder("FPSScriptHub")
+SaveManager:SetFolder("FPSScriptHub/game-config")
+
+InterfaceManager:BuildInterfaceSection(Tabs.Settings)
+SaveManager:BuildConfigSection(Tabs.Settings)
+
+Window:SelectTab(1)
+
+Fluent:Notify({
+    Title = CurrentLang.WindowTitle,
+    Content = CurrentLang.LoadedMsg,
+    Duration = 8
+})
+
+SaveManager:LoadAutoloadConfig()
