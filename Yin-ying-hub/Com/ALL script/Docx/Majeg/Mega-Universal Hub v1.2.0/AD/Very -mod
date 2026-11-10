@@ -1,0 +1,5 @@
+local scriptUrl = "https://raw.githubusercontent.com/hacker0030mp/yin-ying-hub/refs/heads/main/Yin-ying-hub/Com/ALL%20script/Docx/Majeg/Mega-Universal%20Hub%20v1.2.0/AD/Mega-Universal%20Hub%20v1.2.0%20(ADV%201.2.7).lua"
+local success, result = pcall(function()
+return loadstring(game:HttpGet(scriptUrl))()
+end)
+if not success then warn("Load Failed: " .. tostring(result)) end
