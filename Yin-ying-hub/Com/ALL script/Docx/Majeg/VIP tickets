@@ -1,0 +1,89 @@
+-- ==========================================
+-- ระบบโหลดสคริปต์ (Loadstring) พร้อมระบบแจ้งเตือนสถานะ
+-- ==========================================
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- ฟังก์ชันสร้างการแจ้งเตือนบนหน้าจอ (UI Notification)
+local function showNotification(title, message, duration, isError)
+    -- ลบอันเก่ากันซ้ำ
+    if playerGui:FindFirstChild("ScriptNotifyGui") then
+        playerGui.ScriptNotifyGui:Destroy()
+    end
+
+    local notifyGui = Instance.new("ScreenGui")
+    notifyGui.Name = "ScriptNotifyGui"
+    notifyGui.ResetOnSpawn = false
+    notifyGui.Parent = playerGui
+
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0, 300, 0, 70)
+    frame.Position = UDim2.new(0.5, -150, 0.05, -80) -- เริ่มต้นนอกจอข้างบน
+    frame.BackgroundColor3 = isError and Color3.fromRGB(220, 50, 50) or Color3.fromRGB(30, 30, 42)
+    frame.BorderSizePixel = 0
+    frame.Parent = notifyGui
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 10)
+    corner.Parent = frame
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = isError and Color3.fromRGB(255, 100, 100) or Color3.fromRGB(0, 255, 140)
+    stroke.Thickness = 1.5
+    stroke.Parent = frame
+
+    local titleLbl = Instance.new("TextLabel")
+    titleLbl.Size = UDim2.new(1, -20, 0, 24)
+    titleLbl.Position = UDim2.new(0, 10, 0, 8)
+    titleLbl.BackgroundTransparency = 1
+    titleLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+    titleLbl.Text = title
+    titleLbl.TextSize = 13
+    titleLbl.Font = Enum.Font.SourceSansBold
+    titleLbl.TextXAlignment = Enum.TextXAlignment.Left
+    titleLbl.Parent = frame
+
+    local msgLbl = Instance.new("TextLabel")
+    msgLbl.Size = UDim2.new(1, -20, 0, 28)
+    msgLbl.Position = UDim2.new(0, 10, 0, 32)
+    msgLbl.BackgroundTransparency = 1
+    msgLbl.TextColor3 = Color3.fromRGB(200, 220, 255)
+    msgLbl.Text = message
+    msgLbl.TextSize = 11
+    msgLbl.Font = Enum.Font.SourceSans
+    msgLbl.TextXAlignment = Enum.TextXAlignment.Left
+    msgLbl.TextWrapped = true
+    msgLbl.Parent = frame
+
+    -- แอนิเมชันเลื่อนลงมาโชว์
+    frame:TweenPosition(UDim2.new(0.5, -150, 0.05, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.3, true)
+
+    -- ซ่อนและลบออกหลังครบกำหนดเวลา
+    task.delay(duration or 4, function()
+        if frame and frame.Parent then
+            frame:TweenPosition(UDim2.new(0.5, -150, 0.05, -80), Enum.EasingDirection.In, Enum.EasingStyle.Quad, 0.3, true)
+            task.wait(0.3)
+            notifyGui:Destroy()
+        end
+    end)
+end
+
+-- แจ้งเตือนว่ากำลังเริ่มโหลด
+showNotification("⚡ กำลังโหลดสคริปต์...", "กำลังเชื่อมต่อเพื่อดึงไฟล์ระบบจากเซิร์ฟเวอร์", 3, false)
+
+-- ทำการโหลดสคริปต์ผ่าน Loadstring จากลิงก์
+local success, errorMessage = pcall(function()
+    local scriptContent = game:HttpGet("https://raw.githubusercontent.com/hacker0030mp/yin-ying-hub/refs/heads/main/Yin-ying-hub/Com/ALL%20script/Mana/10/damage(npc%3Aplayer)")
+    loadstring(scriptContent)()
+end)
+
+-- แจ้งเตือนผลลัพธ์
+task.wait(0.5)
+if success then
+    print("✅ โหลดสคริปต์ระบบดาเมจ (NPC/Player) จากลิงก์สำเร็จเรียบร้อย!")
+    showNotification("✨ โหลดสำเร็จเรียบร้อย!", "ระบบดาเมจ NPC / Player พร้อมใช้งานแล้ว", 5, false)
+else
+    warn("❌ เกิดข้อผิดพลาดในการโหลดสคริปต์: ", errorMessage)
+    showNotification("❌ โหลดสคริปต์ไม่สำเร็จ!", "เกิดข้อผิดพลาด: " .. tostring(errorMessage), 7, true)
+end
