@@ -1,5 +1,10 @@
--- [[ Script ดาเมจหลักของผู้เล่น + ระบบแยกประเภทอาวุธ + UI สำหรับ Delta ]] --
+-- [[ Script ดาเมจหลักของผู้เล่น + ระบบแยกประเภทอาวุธ + UI ดั้งเดิม + ระบบตรวจจับและคุณภาพ v4.2.5 ]] --
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local Debris = game:GetService("Debris")
+local StatsService = game:GetService("Stats")
+
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
@@ -43,11 +48,24 @@ function DamageConfig.Parse(inputText)
 	return tonumber(text) or 0
 end
 
+function DamageConfig.Format(number)
+	if number >= 1e30 then return string.format("%.2fNo", number / 1e30) end
+	if number >= 1e27 then return string.format("%.2fOc", number / 1e27) end
+	if number >= 1e24 then return string.format("%.2fSp", number / 1e24) end
+	if number >= 1e21 then return string.format("%.2fSx", number / 1e21) end
+	if number >= 1e18 then return string.format("%.2fQi", number / 1e18) end
+	if number >= 1e15 then return string.format("%.2fQa", number / 1e15) end
+	if number >= 1e12 then return string.format("%.2fT", number / 1e12) end
+	if number >= 1e9  then return string.format("%.2fB", number / 1e9) end
+	if number >= 1e6  then return string.format("%.2fM", number / 1e6) end
+	if number >= 1e3  then return string.format("%.2fK", number / 1e3) end
+	return tostring(math.floor(number))
+end
+
 -- ==========================================
--- 2. ดึงค่าดาเมจหลักของผู้เล่น (จาก Stat ในเกม หรือค่าที่ตั้งไว้)
+-- 2. ดึงค่าดาเมจหลักของผู้เล่น
 -- ==========================================
 local function getPlayerBaseDamage()
-	-- ตรวจสอบว่าในตัวผู้เล่นมีค่า Stat ดาเมจสะสมอยู่ไหม (เช่น leaderstats -> Damage หรือ Strength)
 	local leaderstats = player:FindFirstChild("leaderstats")
 	if leaderstats then
 		local statDamage = leaderstats:FindFirstChild("Damage") or leaderstats:FindFirstChild("Strength") or leaderstats:FindFirstChild("Dmg")
@@ -55,38 +73,63 @@ local function getPlayerBaseDamage()
 			return tonumber(statDamage.Value)
 		end
 	end
-	
-	-- ถ้าไม่มีค่า Stat ใน leaderstats ให้คืนค่าเริ่มต้นเป็น 0 (เพื่อให้ใช้ค่าที่พิมพ์ในช่อง UI แทน)
 	return 0
 end
 
 -- ==========================================
--- 3. ตรวจสอบอาวุธ / มือเปล่า และกำหนดตัวคูณ
+-- 3. ตรวจสอบอาวุธและประเภท
 -- ==========================================
 local function getWeaponInfo(character)
 	local tool = character:FindFirstChildOfClass("Tool")
 	if not tool then
-		-- กรณี: มือเปล่า (ไม่มีอาวุธ)
-		return "มือเปล่า (Unarmed)", "Melee", 0.5, 12 -- ชื่อ, ประเภท, ตัวคูณ, ระยะโจมตี
+		return "มือเปล่า (Unarmed)", "Melee", 0.5, 12, Color3.fromRGB(200, 200, 200)
 	end
 
 	local name = tool.Name:lower()
 
-	-- อาวุธระยะไกล (ปืนต่างๆ)
 	if name:find("gun") or name:find("pistol") or name:find("rifle") or name:find("shotgun") or name:find("sniper") or name:find("ปืน") then
-		return tool.Name, "Ranged (ปืนระยะไกล)", 2.0, 50
-	
-	-- อาวุธระยะประชิด (ดาบ, มีด)
+		return tool.Name, "Ranged (ปืนระยะไกล)", 2.0, 50, Color3.fromRGB(100, 220, 255)
 	elseif name:find("knife") or name:find("sword") or name:find("blade") or name:find("axe") or name:find("มีด") or name:find("ดาบ") then
-		return tool.Name, "Melee (ระยะประชิด)", 1.2, 15
-	
+		return tool.Name, "Melee (ระยะประชิด)", 1.2, 15, Color3.fromRGB(255, 220, 100)
 	else
-		return tool.Name, "Melee (ทั่วไป)", 1.0, 15
+		return tool.Name, "Melee (ทั่วไป)", 1.0, 15, Color3.fromRGB(255, 150, 100)
 	end
 end
 
 -- ==========================================
--- 4. สร้างหน้าต่าง UI
+-- 4. ระบบแสดงตัวเลขดาเมจลอยตัว (Floating Text)
+-- ==========================================
+local function showFloatingDamage(targetPart, damageValue, color)
+	if not targetPart then return end
+	local billboard = Instance.new("BillboardGui")
+	billboard.Size = UDim2.new(0, 100, 0, 40)
+	billboard.StudsOffset = Vector3.new(math.random(-1, 1), 2, math.random(-1, 1))
+	billboard.AlwaysOnTop = true
+
+	local textLabel = Instance.new("TextLabel")
+	textLabel.Size = UDim2.new(1, 0, 1, 0)
+	textLabel.BackgroundTransparency = 1
+	textLabel.TextColor3 = color or Color3.fromRGB(255, 255, 255)
+	textLabel.TextStrokeTransparency = 0.2
+	textLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+	textLabel.TextSize = 16
+	textLabel.Font = Enum.Font.SourceSansBold
+	textLabel.Text = "-" .. DamageConfig.Format(damageValue)
+	textLabel.Parent = billboard
+
+	billboard.Parent = targetPart
+	Debris:AddItem(billboard, 0.8)
+
+	local tween = TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+	TweenService:Create(textLabel, tween, {
+		Position = UDim2.new(0, 0, -1, 0),
+		TextTransparency = 1,
+		TextStrokeTransparency = 1
+	}):Play()
+end
+
+-- ==========================================
+-- 5. สร้างหน้าต่าง UI (รูปแบบดั้งเดิมของคุณ + เพิ่มสถานะคุณภาพ/FPS)
 -- ==========================================
 local currentTargetMode = "NPC"
 
@@ -96,8 +139,8 @@ screenGui.ResetOnSpawn = false
 screenGui.Parent = playerGui
 
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 250, 0, 220)
-mainFrame.Position = UDim2.new(0.5, -125, 0.32, 0)
+mainFrame.Size = UDim2.new(0, 260, 0, 250)
+mainFrame.Position = UDim2.new(0.5, -130, 0.32, 0)
 mainFrame.BackgroundColor3 = Color3.fromRGB(22, 22, 30)
 mainFrame.BorderSizePixel = 0
 mainFrame.Active = true
@@ -121,10 +164,10 @@ local titleCorner = Instance.new("UICorner")
 titleCorner.CornerRadius = UDim.new(0, 10)
 titleCorner.Parent = titleLabel
 
--- ช่องใส่ค่าดาเมจ (หรือปรับแต่งดาเมจ)
+-- ช่องใส่ค่าดาเมจ
 local inputTextBox = Instance.new("TextBox")
-inputTextBox.Size = UDim2.new(0.88, 0, 0, 32)
-inputTextBox.Position = UDim2.new(0.06, 0, 0.16, 0)
+inputTextBox.Size = UDim2.new(0.88, 0, 0, 30)
+inputTextBox.Position = UDim2.new(0.06, 0, 0.14, 0)
 inputTextBox.BackgroundColor3 = Color3.fromRGB(15, 15, 22)
 inputTextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
 inputTextBox.PlaceholderText = "ใส่ค่าดาเมจ (เช่น 1No, 100)"
@@ -140,8 +183,8 @@ inputCorner.Parent = inputTextBox
 
 -- ข้อความแสดงสถานะดาเมจตัวละครและอาวุธ
 local statusLabel = Instance.new("TextLabel")
-statusLabel.Size = UDim2.new(0.88, 0, 0, 28)
-statusLabel.Position = UDim2.new(0.06, 0, 0.34, 0)
+statusLabel.Size = UDim2.new(0.88, 0, 0, 26)
+statusLabel.Position = UDim2.new(0.06, 0, 0.28, 0)
 statusLabel.BackgroundTransparency = 1
 statusLabel.TextColor3 = Color3.fromRGB(150, 220, 255)
 statusLabel.TextSize = 11
@@ -149,9 +192,20 @@ statusLabel.Font = Enum.Font.SourceSansItalic
 statusLabel.Text = "กำลังคำนวณดาเมจผู้เล่น..."
 statusLabel.Parent = mainFrame
 
+-- ข้อความแสดงคุณภาพระบบ / FPS / Ping (ระบบคุณภาพใหม่)
+local qualityLabel = Instance.new("TextLabel")
+qualityLabel.Size = UDim2.new(0.88, 0, 0, 20)
+qualityLabel.Position = UDim2.new(0.06, 0, 0.40, 0)
+qualityLabel.BackgroundTransparency = 1
+qualityLabel.TextColor3 = Color3.fromRGB(0, 255, 140)
+qualityLabel.TextSize = 10
+qualityLabel.Font = Enum.Font.SourceSansBold
+qualityLabel.Text = "📊 สถานะ: กำลังตรวจจับคุณภาพ..."
+qualityLabel.Parent = mainFrame
+
 -- ปุ่ม Toggle เป้าหมาย (NPC / Player)
 local toggleBtn = Instance.new("TextButton")
-toggleBtn.Size = UDim2.new(0.88, 0, 0, 30)
+toggleBtn.Size = UDim2.new(0.88, 0, 0, 28)
 toggleBtn.Position = UDim2.new(0.06, 0, 0.52, 0)
 toggleBtn.BackgroundColor3 = Color3.fromRGB(45, 140, 240)
 toggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -166,8 +220,8 @@ toggleCorner.Parent = toggleBtn
 
 -- ปุ่ม Execute Damage
 local dealDamageBtn = Instance.new("TextButton")
-dealDamageBtn.Size = UDim2.new(0.88, 0, 0, 36)
-dealDamageBtn.Position = UDim2.new(0.06, 0, 0.73, 0)
+dealDamageBtn.Size = UDim2.new(0.88, 0, 0, 34)
+dealDamageBtn.Position = UDim2.new(0.06, 0, 0.69, 0)
 dealDamageBtn.BackgroundColor3 = Color3.fromRGB(220, 50, 50)
 dealDamageBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 dealDamageBtn.Text = "EXECUTE DAMAGE"
@@ -180,12 +234,33 @@ btnCorner.CornerRadius = UDim.new(0, 6)
 btnCorner.Parent = dealDamageBtn
 
 -- ==========================================
--- 5. อัปเดตข้อมูล UI แบบเรียลไทม์
+-- 6. ระบบตรวจสอบสถานะและคุณภาพ (Quality & Performance Monitor)
+-- ==========================================
+local lastTick = tick()
+local frameCount = 0
+local currentFPS = 60
+
+RunService.RenderStepped:Connect(function(dt)
+	frameCount += 1
+	if tick() - lastTick >= 1 then
+		currentFPS = math.floor(frameCount / (tick() - lastTick) + 0.5)
+		frameCount = 0
+		lastTick = tick()
+
+		pcall(function()
+			local ping = math.floor(player:GetNetworkPing() * 1000 + 0.5)
+			qualityLabel.Text = string.format("🟢 FPS: %d | Ping: %ms | คุณภาพ: สมบูรณ์", currentFPS, ping)
+		end)
+	end
+end)
+
+-- ==========================================
+-- 7. อัปเดตข้อมูล UI แบบเรียลไทม์
 -- ==========================================
 local function updateUIStatus()
 	local char = player.Character
 	if char then
-		local wName, wType, mult, range = getWeaponInfo(char)
+		local wName, wType, mult, range, color = getWeaponInfo(char)
 		local baseDmg = getPlayerBaseDamage()
 		
 		if baseDmg > 0 then
@@ -193,18 +268,10 @@ local function updateUIStatus()
 		else
 			statusLabel.Text = string.format("🛡️ อุปกรณ์: %s (ตัวคูณ x%.1f)", wName, mult)
 		end
-		
-		if wType:find("Ranged") then
-			statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
-		elseif wType:find("Melee") and wName ~= "มือเปล่า (Unarmed)" then
-			statusLabel.TextColor3 = Color3.fromRGB(255, 220, 100)
-		else
-			statusLabel.TextColor3 = Color3.fromRGB(255, 150, 100)
-		end
+		statusLabel.TextColor3 = color
 	end
 end
 
--- คอยดักฟังตอนเปลี่ยนอาวุธ
 player.CharacterAdded:Connect(function(char)
 	char.ChildAdded:Connect(function(c) if c:IsA("Tool") then task.wait(0.1) updateUIStatus() end end)
 	char.ChildRemoved:Connect(function(c) if c:IsA("Tool") then task.wait(0.1) updateUIStatus() end end)
@@ -217,7 +284,7 @@ if player.Character then
 end
 
 -- ==========================================
--- 6. ระบบกดปุ่มทำดาเมจ
+-- 8. ระบบกดปุ่มทำดาเมจและการตรวจจับ
 -- ==========================================
 toggleBtn.MouseButton1Click:Connect(function()
 	if currentTargetMode == "NPC" then
@@ -234,8 +301,6 @@ end)
 dealDamageBtn.MouseButton1Click:Connect(function()
 	local inputDamage = DamageConfig.Parse(inputTextBox.Text)
 	local baseStatDamage = getPlayerBaseDamage()
-	
-	-- หากมีค่า Stat ดาเมจในตัวผู้เล่น ให้เอามาบวก/รวมกัน หรือใช้ค่าที่พิมพ์ หากไม่มี Stat
 	local coreDamage = (baseStatDamage > 0) and baseStatDamage or inputDamage
 	
 	local char = player.Character
@@ -243,34 +308,38 @@ dealDamageBtn.MouseButton1Click:Connect(function()
 	local rootPart = char:FindFirstChild("HumanoidRootPart")
 	if not rootPart then return end
 
-	-- ดึงข้อมูลอาวุธและตัวคูณ
-	local wName, wType, multiplier, maxRange = getWeaponInfo(char)
-	local finalDamage = coreDamage * multiplier -- ดาเมจสุทธิ (ดาเมจตัวละคร/ที่พิมพ์ x ตัวคูณอาวุธหรือมือเปล่า)
-
+	local wName, wType, multiplier, maxRange, wColor = getWeaponInfo(char)
+	local finalDamage = coreDamage * multiplier
 	local hitCount = 0
 
-	for _, object in ipairs(workspace:GetChildren()) do
-		local humanoid = object:FindFirstChildOfClass("Humanoid")
-		local targetRoot = object:FindFirstChild("HumanoidRootPart") or object:FindFirstChild("PrimaryPart")
+	-- ระบบตรวจจับเป้าหมายทั่ว Workspace อย่างแม่นยำ
+	for _, object in ipairs(workspace:GetDescendants()) do
+		if object:IsA("Humanoid") and object.Health > 0 then
+			local model = object.Parent
+			if model and model ~= char and model:IsA("Model") then
+				local targetRoot = model:FindFirstChild("HumanoidRootPart") or model:FindFirstChild("PrimaryPart")
+				if targetRoot then
+					local distance = (targetRoot.Position - rootPart.Position).Magnitude
+					if distance <= maxRange then
+						local isPlayer = Players:GetPlayerFromCharacter(model) ~= nil
 
-		if humanoid and targetRoot and humanoid.Health > 0 and object ~= char then
-			local distance = (targetRoot.Position - rootPart.Position).Magnitude
-			if distance <= maxRange then
-				local isPlayer = Players:GetPlayerFromCharacter(object) ~= nil
-
-				if currentTargetMode == "NPC" and not isPlayer then
-					humanoid:TakeDamage(finalDamage)
-					hitCount += 1
-				elseif currentTargetMode == "Player" and isPlayer then
-					humanoid:TakeDamage(finalDamage)
-					hitCount += 1
+						if currentTargetMode == "NPC" and not isPlayer then
+							object:TakeDamage(finalDamage)
+							showFloatingDamage(targetRoot, finalDamage, wColor)
+							hitCount += 1
+						elseif currentTargetMode == "Player" and isPlayer then
+							object:TakeDamage(finalDamage)
+							showFloatingDamage(targetRoot, finalDamage, wColor)
+							hitCount += 1
+						end
+					end
 				end
 			end
 		end
 	end
 
-	print(string.format("🎯 [Mode: %s] | อาวุธ: %s | โดน %d เป้าหมาย | ดาเมจสุทธิ: %.2e", 
-		currentTargetMode, wName, hitCount, finalDamage))
+	print(string.format("🎯 [Mode: %s] | อาวุธ: %s | โดน %d เป้าหมาย | ดาเมจสุทธิ: %s", 
+		currentTargetMode, wName, hitCount, DamageConfig.Format(finalDamage)))
 end)
 
-print("✅ โหลดระบบดาเมจตัวละคร + อาวุธสำเร็จ!")
+print("✅ โหลดระบบ UI ดั้งเดิม + ตรวจจับเป้าหมาย + ระบบคุณภาพสำเร็จเรียบร้อย!")
