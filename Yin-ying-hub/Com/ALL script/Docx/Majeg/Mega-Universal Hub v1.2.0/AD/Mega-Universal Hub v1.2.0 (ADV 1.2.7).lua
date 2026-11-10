@@ -580,8 +580,6 @@ writefile("MegaHub/mod/combat/multi.lua", 'return function(v) print("[ADV 1.2.0]
 writefile("MegaHub/mod/player/speed.lua", [[
 return function(v)
 local lp = game:GetService("Players").LocalPlayer
-if lp an
-
 local v210=v208;if (v205 and (v205>v209)) then v210=v209;end;return v210;end;writefile("MegaHub/mod/player/speed.lua", [[return function(v) local lp = game:GetService("Players").LocalPlayer if lp and lp.Character then local hum = lp.Character:FindFirstChildOfClass("Humanoid") if hum then hum.WalkSpeed = v end end end]]) writefile("MegaHub/mod/player/jump.lua", 'return function(v) local lp = game:GetService("Players").LocalPlayer if lp and lp.Character then local hum = lp.Character:FindFirstChildOfClass("Humanoid") if hum then hum.JumpPower = v end end end') writefile("MegaHub/mod/player/noclip.lua", 'return function(s) print("[ADV 1.2.0] Noclip:", s) end') writefile("MegaHub/mod/player/fly.lua", 'return function(s) print("[ADV 1.2.0] Fly Mode:", s) end') writefile("MegaHub/mod/util/redeem.lua", 'return function() print("[ADV 1.2.0] Auto Redeem executed") end') writefile("MegaHub/mod/util/credits.lua", 'return function() print("[ADV 1.2.0] Credit Vault opened") end') writefile("MegaHub/mod/cfg/copykey.lua", 'return function() print("[ADV 1.2.0] Key link copied") end') writefile("MegaHub/mod/cfg/pastekey.lua", 'return function() print("[ADV 1.2.0] Key verified") end') end) end initMockHandlers() sendNotification("MegaHub ADV 1.2.0", "Loaded successfully! Enjoy.", 4)
                 end)
                 
