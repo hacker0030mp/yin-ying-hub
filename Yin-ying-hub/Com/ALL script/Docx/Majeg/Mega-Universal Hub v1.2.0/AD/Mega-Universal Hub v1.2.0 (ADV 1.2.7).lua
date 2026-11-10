@@ -52,7 +52,6 @@ end
 local function saveConfig(key, value)
 pcall(function()
 if isfolder and not isfolder("MegaHub") then makefolder("MegaHub") end
-writefile("MegaHub/"..key..".json", HttpService:JSONEncode(value))
 end)
 end
 local function loadConfig(key, default)
@@ -85,8 +84,6 @@ local Loader = {}
 function Loader.get(rec)
 if State.cache[rec.id] then return State.cache[rec.id] end
 local ok, fn = pcall(function()
-return loadstring(readfile("MegaHub/"..rec.handler..".lua"))()
-end)
 if ok and fn then
 State.cache[rec.id] = fn
 return fn
@@ -572,21 +569,10 @@ if not isfolder("MegaHub/mod/combat") then makefolder("MegaHub/mod/combat") end
 if not isfolder("MegaHub/mod/player") then makefolder("MegaHub/mod/player") end
 if not isfolder("MegaHub/mod/util") then makefolder("MegaHub/mod/util") end
 if not isfolder("MegaHub/mod/cfg") then makefolder("MegaHub/mod/cfg") end
-writefile("MegaHub/mod/combat/aim.lua", 'return function(s) print("[ADV 1.2.0] Aimbot:", s) end')
-writefile("MegaHub/mod/combat/mode.lua", 'return function(v) print("[ADV 1.2.0] Target Mode:", v) end')
-writefile("MegaHub/mod/combat/hitbox.lua", 'return function(z) print("[ADV 1.2.0] Hitbox Size:", z) end')
-writefile("MegaHub/mod/combat/dmg.lua", 'return function(v) print("[ADV 1.2.0] Damage Scale:", v) end')
-writefile("MegaHub/mod/combat/multi.lua", 'return function(v) print("[ADV 1.2.0] Multi-Hit:", v) end')
-writefile("MegaHub/mod/player/speed.lua", [[
+[[
 return function(v)
 local lp = game:GetService("Players").LocalPlayer
 local v210=v208;if (v205 and (v205>v209)) then v210=v209;end;return v210;end;writefile("MegaHub/mod/player/speed.lua", [[return function(v) local lp = game:GetService("Players").LocalPlayer if lp and lp.Character then local hum = lp.Character:FindFirstChildOfClass("Humanoid") if hum then hum.WalkSpeed = v end end end]]) writefile("MegaHub/mod/player/jump.lua", 'return function(v) local lp = game:GetService("Players").LocalPlayer if lp and lp.Character then local hum = lp.Character:FindFirstChildOfClass("Humanoid") if hum then hum.JumpPower = v end end end') writefile("MegaHub/mod/player/noclip.lua", 'return function(s) print("[ADV 1.2.0] Noclip:", s) end') writefile("MegaHub/mod/player/fly.lua", 'return function(s) print("[ADV 1.2.0] Fly Mode:", s) end') writefile("MegaHub/mod/util/redeem.lua", 'return function() print("[ADV 1.2.0] Auto Redeem executed") end') writefile("MegaHub/mod/util/credits.lua", 'return function() print("[ADV 1.2.0] Credit Vault opened") end') writefile("MegaHub/mod/cfg/copykey.lua", 'return function() print("[ADV 1.2.0] Key link copied") end') writefile("MegaHub/mod/cfg/pastekey.lua", 'return function() print("[ADV 1.2.0] Key verified") end') end) end initMockHandlers() sendNotification("MegaHub ADV 1.2.0", "Loaded successfully! Enjoy.", 4)
-                end)
-                
-            end)
         end)
-        
     end)
-    
 end)
-
